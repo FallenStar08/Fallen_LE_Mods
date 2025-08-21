@@ -9,6 +9,7 @@ namespace Fallen_LE_Mods.Shared
     //Maybe this should be split, idk..
     public static class FallenUtils
     {
+
         public static void Log(string msg)
         {
             Melon<MyMod>.Logger.Msg(msg);
@@ -51,16 +52,18 @@ namespace Fallen_LE_Mods.Shared
 
         public static Rule? MatchFilterRule(ItemDataUnpacked _item, bool GetHighest = true)
         {
+
             if (GameReferencesCache.itemFilterManager == null) { return null; }
 
             var rules = GameReferencesCache.itemFilterManager.Filter.rules;
+            int level = GameReferencesCache.expTracker.CurrentLevel;
 
             if (!GetHighest)
             {
                 for (int i = 0; i < rules.Count; i++)
                 {
                     Rule rule = rules[i];
-                    if (rule.Match(_item) && rule.type.ToString() != "HIDE" && rule.isEnabled)
+                    if (rule.Match(_item, level) && rule.type.ToString() != "HIDE" && rule.isEnabled)
                     {
                         return rule;
                     }
@@ -71,7 +74,7 @@ namespace Fallen_LE_Mods.Shared
                 for (int i = rules.Count - 1; i >= 0; i--)
                 {
                     Rule rule = rules[i];
-                    if (rule.Match(_item) && rule.type.ToString() != "HIDE" && rule.isEnabled)
+                    if (rule.Match(_item, level) && rule.type.ToString() != "HIDE" && rule.isEnabled)
                     {
                         return rule;
                     }
