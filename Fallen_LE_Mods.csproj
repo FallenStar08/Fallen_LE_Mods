@@ -4,7 +4,7 @@
 
   <PropertyGroup>
 
-		  <Version>3.0.0</Version>
+		  <Version>3.0.1</Version>
 
 
 	  <TargetFramework>net6.0</TargetFramework>
@@ -560,6 +560,44 @@
 	<ItemGroup>
 	  <Compile Remove="Dev\Skins.cs" />
 	</ItemGroup>
+
+	<!-- regex-replace text in a file -->
+	<UsingTask TaskName="RegexReplace"
+			   TaskFactory="CodeTaskFactory"
+			   AssemblyName="Microsoft.Build.Tasks.Core">
+		<ParameterGroup>
+			<InputFile ParameterType="System.String" Required="true" />
+			<RegexPattern ParameterType="System.String" Required="true" />
+			<Replacement ParameterType="System.String" Required="true" />
+		</ParameterGroup>
+		<Task>
+			<Using Namespace="System.IO" />
+			<Using Namespace="System.Text.RegularExpressions" />
+			<Code Type="Fragment" Language="cs">
+				<![CDATA[
+          string text = File.ReadAllText(InputFile);
+          text = Regex.Replace(text, RegexPattern, Replacement, RegexOptions.Singleline);
+          File.WriteAllText(InputFile, text);
+        ]]>
+			</Code>
+		</Task>
+	</UsingTask>
+
+	<!-- Replace the version in AssemblyInfo.cs before every build -->
+	<Target Name="UpdateMelonInfoVersion" BeforeTargets="BeforeBuild">
+		<PropertyGroup>
+			<NewVersion>[assembly: MelonInfo(typeof(MyMod), "FallenStar's Improved Tooltips", "$(Version)", "FallenStar")]</NewVersion>
+		</PropertyGroup>
+
+		<Message Text="Updating MelonInfo version to $(Version)" Importance="High" />
+
+		<RegexReplace
+		  InputFile="AssemblyInfo.cs"
+		  RegexPattern="\[assembly:\s*MelonInfo\(.*?\)\]"
+		  Replacement="$(NewVersion)" />
+
+	</Target>
+
 
 
 	<PropertyGroup Condition="'$(Configuration)' == 'NEXUSRELEASE'">
