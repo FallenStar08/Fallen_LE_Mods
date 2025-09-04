@@ -16,6 +16,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
 
         private static void HandleTooltipUpdate(ItemDataUnpacked item)
         {
+            if (item == null) return;
             if (item == null || item.LoreText.Contains(LoreMarker))
             {
                 // Already modified

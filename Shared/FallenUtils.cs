@@ -52,7 +52,6 @@ namespace Fallen_LE_Mods.Shared
 
         public static Rule? MatchFilterRule(ItemDataUnpacked _item, bool GetHighest = true)
         {
-
             if (GameReferencesCache.itemFilterManager == null) { return null; }
 
             var rules = GameReferencesCache.itemFilterManager.Filter.rules;
@@ -63,7 +62,7 @@ namespace Fallen_LE_Mods.Shared
                 for (int i = 0; i < rules.Count; i++)
                 {
                     Rule rule = rules[i];
-                    if (rule.Match(_item, level) && rule.type.ToString() != "HIDE" && rule.isEnabled)
+                    if (rule != null && rule.Match(_item, level) && rule.type.ToString() != "HIDE" && rule.isEnabled)
                     {
                         return rule;
                     }
@@ -74,7 +73,7 @@ namespace Fallen_LE_Mods.Shared
                 for (int i = rules.Count - 1; i >= 0; i--)
                 {
                     Rule rule = rules[i];
-                    if (rule.Match(_item, level) && rule.type.ToString() != "HIDE" && rule.isEnabled)
+                    if (rule != null && rule.Match(_item, level) && rule.type.ToString() != "HIDE" && rule.isEnabled)
                     {
                         return rule;
                     }
