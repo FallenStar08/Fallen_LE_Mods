@@ -17,7 +17,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
         private static void HandleTooltipUpdate(ItemDataUnpacked item)
         {
             if (item == null) return;
-            if (item == null || item.LoreText.Contains(LoreMarker))
+            if (item.LoreText != null && item.LoreText.Contains(LoreMarker))
             {
                 // Already modified
                 int markerIndex = item.LoreText.IndexOf(LoreMarker);
@@ -59,6 +59,10 @@ namespace Fallen_LE_Mods.Improved_Tooltips
             {
                 string description = "Not Owned";
                 additions += $"\n\n</color>{description}";
+            }
+            if (item.LoreText == null)
+            {
+                item.LoreText = "";
             }
 
             // Only modify if new text would be different
