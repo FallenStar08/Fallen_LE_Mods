@@ -17,29 +17,23 @@ namespace Fallen_LE_Mods.Improved_Tooltips
         private static void HandleTooltipUpdate(ItemDataUnpacked item)
         {
             if (item == null) return;
-            if (item.LoreText != null && item.LoreText.Contains(LoreMarker))
+            if (item.LoreText == null) item.LoreText = "";
+
+            if (item.LoreText.Contains(LoreMarker))
             {
-                // Already modified
                 int markerIndex = item.LoreText.IndexOf(LoreMarker);
-                if (markerIndex >= 0)
-                    item.LoreText = item.LoreText.Substring(0, markerIndex); // Strip prior additions
+                item.LoreText = item.LoreText.Substring(0, markerIndex).TrimEnd('\n', '\r', ' ');
             }
 
             string additions = "";
-            bool addedFilterText = false;
 
             Rule? match = FallenUtils.MatchFilterRule(item);
             if (match != null && (ItemList.isEquipment(item.itemType) || ItemList.isIdol(item.itemType)))
             {
                 var description = match.GetRuleDescription();
-                if (description != null)
+                if (!string.IsNullOrEmpty(description))
                 {
-                    if (item.LoreText == "")
-                        additions += $"FilterRule : {description}";
-                    else
-                        additions += $"\n\n</color>FilterRule : {description}";
-
-                    addedFilterText = true;
+                    additions += $"\n\nFilterRule : {description}";
                 }
             }
 
@@ -47,28 +41,20 @@ namespace Fallen_LE_Mods.Improved_Tooltips
             if (matchedUniqueOrSet != null)
             {
                 int ownedLP = matchedUniqueOrSet.legendaryPotential;
-                string LPdescription = ownedLP > item.legendaryPotential ? $"with higher LP : {ownedLP}" :
-                                       ownedLP < item.legendaryPotential ? $"with lower LP : {ownedLP}" :
-                                       matchedUniqueOrSet.Equals(item) ? "with similar LP (Self)" :
-                                                                        "with similar LP (Duplicate)";
-                string description = $"Already Owned {LPdescription}";
-
-                additions += addedFilterText ? $"\n\n{description}" : $"\n\n</color>{description}";
+                string LPdesc = ownedLP > item.legendaryPotential ? $"higher LP : {ownedLP}" :
+                                ownedLP < item.legendaryPotential ? $"lower LP : {ownedLP}" :
+                                matchedUniqueOrSet.Equals(item) ? "Self" : "Duplicate";
+                additions += $"\n\nAlready Owned with {LPdesc}";
             }
             else if (item.isUniqueSetOrLegendary())
             {
-                string description = "Not Owned";
-                additions += $"\n\n</color>{description}";
-            }
-            if (item.LoreText == null)
-            {
-                item.LoreText = "";
+                additions += "\n\nNot Owned";
             }
 
-            // Only modify if new text would be different
-            string newLore = item.LoreText + additions + LoreMarker;
-            if (item.LoreText != newLore)
-                item.LoreText = newLore;
+            if (!string.IsNullOrEmpty(additions))
+            {
+                item.LoreText = item.LoreText + LoreMarker + additions;
+            }
         }
 
 
