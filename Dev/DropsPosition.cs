@@ -2,6 +2,7 @@
 using Fallen_LE_Mods.Shared;
 using HarmonyLib;
 using Il2Cpp;
+using Il2CppLE.Factions;
 using MelonLoader;
 using UnityEngine;
 namespace Fallen_LE_Mods.Dev
@@ -58,7 +59,7 @@ namespace Fallen_LE_Mods.Dev
     [HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmberAfterDelay")]
     public class MemoryAmberHandler : MelonMod
     {
-        public static void Prefix(Vector3 position, int corruption, float quantityModifier, global::Il2CppSystem.Func<int, float, uint> baseQuantity, global::Il2CppSystem.Func<Actor, bool> dropFor, float delay)
+        public static void Prefix(UnityEngine.Vector3 position, uint quantity, float delay, PickupableObjectCondition condition)
         {
             Vector3 playerPosition = GameReferencesCache.player.position();
             position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
@@ -78,17 +79,17 @@ namespace Fallen_LE_Mods.Dev
         }
     }
 
-    [HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmberInPiles", new Type[] { typeof(UnityEngine.Vector3), typeof(int), typeof(int), typeof(float), typeof(Il2CppSystem.Func<Il2Cpp.Actor, bool>) })]
+    //[HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmberInPilesForExplicitActor", new Type[] { typeof(UnityEngine.Vector3), typeof(int), typeof(int), typeof(float), typeof(Il2CppSystem.Func<Il2Cpp.Actor, bool>) })]
 
-    public class DropMemoryAmberInPilesHandler : MelonMod
-    {
-        public static void Prefix(UnityEngine.Vector3 position, int piles, int corruption, float quantityModifier, Il2CppSystem.Func<Il2Cpp.Actor, bool> dropFor)
-        {
-            Vector3 playerPosition = GameReferencesCache.player.position();
-            position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
+    //public class DropMemoryAmberInPilesForExplicitActorHandler : MelonMod
+    //{
+    //    public static void Prefix(UnityEngine.Vector3 position, int piles, int corruption, float quantityModifier, Il2CppSystem.Func<Il2Cpp.Actor, bool> actor)
+    //    {
+    //        Vector3 playerPosition = GameReferencesCache.player.position();
+    //        position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
 
-        }
-    }
+    //    }
+    //}
 
 }
 #endif
