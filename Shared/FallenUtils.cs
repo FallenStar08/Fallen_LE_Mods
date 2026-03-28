@@ -52,19 +52,25 @@ namespace Fallen_LE_Mods.Shared
 
         public static Rule? MatchFilterRule(ItemDataUnpacked _item, bool GetHighest = true)
         {
-            if (GameReferencesCache.itemFilterManager == null) { return null; }
+            if (_item == null) return null;
 
-            var rules = GameReferencesCache.itemFilterManager.Filter.rules;
-            int level = GameReferencesCache.expTracker.CurrentLevel;
+            var filterManager = GameReferencesCache.itemFilterManager;
+            if (filterManager == null || filterManager.Filter == null || filterManager.Filter.rules == null)
+            {
+                return null;
+            }
+
+            var rules = filterManager.Filter.rules;
+            int level = (GameReferencesCache.expTracker != null) ? GameReferencesCache.expTracker.CurrentLevel : 0;
 
             if (!GetHighest)
             {
                 for (int i = 0; i < rules.Count; i++)
                 {
                     Rule rule = rules[i];
-                    if (rule != null && rule.Match(_item, level) && rule.type.ToString() != "HIDE" && rule.isEnabled)
+                    if (rule != null && rule.isEnabled && rule.type.ToString() != "HIDE")
                     {
-                        return rule;
+                        if (rule.Match(_item, level)) return rule;
                     }
                 }
             }
@@ -73,16 +79,15 @@ namespace Fallen_LE_Mods.Shared
                 for (int i = rules.Count - 1; i >= 0; i--)
                 {
                     Rule rule = rules[i];
-                    if (rule != null && rule.Match(_item, level) && rule.type.ToString() != "HIDE" && rule.isEnabled)
+                    if (rule != null && rule.isEnabled && rule.type.ToString() != "HIDE")
                     {
-                        return rule;
+                        if (rule.Match(_item, level)) return rule;
                     }
                 }
             }
 
             return null;
         }
-
 
         public static ItemDataUnpacked? FindSimilarUniqueItemInStash(ItemDataUnpacked _item)
         {
