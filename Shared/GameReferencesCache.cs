@@ -26,7 +26,7 @@ namespace Fallen_LE_Mods.Shared
             itemContainersManager = ItemContainersManager.Instance;
             playerStash = StashTabbedUIControls.instance.container.containers;
             gameUiBase = UIBase.instance;
-            inventoryPanelUI = gameUiBase.inventoryPanel.instance.GetComponent<InventoryPanelUI>();
+            //inventoryPanelUI = gameUiBase.inventoryPanel.instance.GetComponent<InventoryPanelUI>();
             playerData = PlayerFinder.getPlayerData();
             characterDataTracker = PlayerFinder.getPlayerDataTracker();
             expTracker = PlayerFinder.getExperienceTracker();
