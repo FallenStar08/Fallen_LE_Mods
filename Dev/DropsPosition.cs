@@ -14,7 +14,7 @@ namespace Fallen_LE_Mods.Dev
     {
 
 
-        public static bool Prefix(GroundItemManager __instance, Actor player, ItemData itemData, Vector3 location, bool playDropSound)
+        public static bool Prefix(GroundItemManager __instance, Actor player, ItemData itemData, ref Vector3 location, bool playDropSound)
         {
             if (!ItemList.isCraftingItem(itemData.itemType) && !ItemList.isWovenEcho(itemData.itemType) && !Item.isKey(itemData.itemType))
                 return true;
@@ -38,8 +38,9 @@ namespace Fallen_LE_Mods.Dev
     public class GoldDropHandler : MelonMod
     {
 
-        public static bool Prefix(ref GroundItemManager __instance, ref Actor player, ref int goldValue, ref Vector3 location, ref bool playDropSound)
+        public static bool Prefix(GroundItemManager __instance, Actor player, int goldValue, ref Vector3 location, ref bool playDropSound)
         {
+            if (GameReferencesCache.goldTracker == null) return true;
             GameReferencesCache.goldTracker.modifyGold(goldValue);
             playDropSound = false;
             return false;
@@ -49,9 +50,10 @@ namespace Fallen_LE_Mods.Dev
     [HarmonyPatch(typeof(GroundItemManager), "dropXPTomeForPlayer")]
     public class XPTomeDropHandler : MelonMod
     {
-        public static void Prefix(ref GroundItemManager __instance, ref Actor player, ref int experience, ref Vector3 location, ref bool playDropSound)
+        public static void Prefix(GroundItemManager __instance, Actor player, int experience, ref Vector3 location, bool playDropSound)
         {
-            Vector3 playerPosition = player.position();
+            if (GameReferencesCache.player == null) return;
+            Vector3 playerPosition = GameReferencesCache.player.position();
             location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
 
         }
@@ -60,8 +62,9 @@ namespace Fallen_LE_Mods.Dev
     [HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmberAfterDelay")]
     public class MemoryAmberHandler : MelonMod
     {
-        public static void Prefix(UnityEngine.Vector3 position, uint quantity, float delay, PickupableObjectCondition condition)
+        public static void Prefix(ref UnityEngine.Vector3 position, uint quantity, float delay, PickupableObjectCondition condition)
         {
+            if (GameReferencesCache.player == null) return;
             Vector3 playerPosition = GameReferencesCache.player.position();
             position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
 
@@ -71,9 +74,9 @@ namespace Fallen_LE_Mods.Dev
     [HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmberInPilesForWeaverMembers")]
     public class DropMemoryAmberInPilesForWeaverMembersHandler : MelonMod
     {
-        public static void Prefix(UnityEngine.Vector3 position, int piles, int corruption, float quantityModifier)
+        public static void Prefix(ref UnityEngine.Vector3 position, int piles, int corruption, float quantityModifier)
         {
-
+            if (GameReferencesCache.player == null) return;
             Vector3 playerPosition = GameReferencesCache.player.position();
             position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
 
@@ -85,14 +88,20 @@ namespace Fallen_LE_Mods.Dev
     [HarmonyPatch(typeof(GroundItemManager), "dropAncientBoneForPlayer")]
     public class DropAncientBoneForPlayerHandler : MelonMod
     {
-        public static void Postfix(ref GroundItemManager __instance, ref Actor player, ref int amount, ref UnityEngine.Vector3 location, ref bool playDropSound, ref bool randomiseLocation)
+        public static void Prefix(GroundItemManager __instance, Actor player, int amount, ref UnityEngine.Vector3 location, ref bool playDropSound, ref bool randomiseLocation)
+        {
+            if (GameReferencesCache.player == null) return;
+
+            location = GameReferencesCache.player.position();
+            randomiseLocation = false;
+            playDropSound = false;
+        }
+
+        public static void Postfix(GroundItemManager __instance, Actor player, int amount, UnityEngine.Vector3 location, bool playDropSound, bool randomiseLocation)
         {
             if (__instance == null || GameReferencesCache.player == null || __instance.activeAncientBones == null)
                 return;
 
-            Vector3 playerPosition = GameReferencesCache.player.position();
-            location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
-            randomiseLocation = false;
             uint boneId = __instance.nextAncientBoneId - 1;
 
             for (int i = 0; i < __instance.activeAncientBones.Count; i++)
