@@ -3,6 +3,7 @@ using Fallen_LE_Mods.Shared;
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppLE.Factions;
+using Il2CppLE.Gameplay.PrimalHunt;
 using MelonLoader;
 using UnityEngine;
 namespace Fallen_LE_Mods.Dev
@@ -37,11 +38,11 @@ namespace Fallen_LE_Mods.Dev
     public class GoldDropHandler : MelonMod
     {
 
-        public static void Prefix(ref GroundItemManager __instance, ref Actor player, ref int goldValue, ref Vector3 location, ref bool playDropSound)
+        public static bool Prefix(ref GroundItemManager __instance, ref Actor player, ref int goldValue, ref Vector3 location, ref bool playDropSound)
         {
-            Vector3 playerPosition = player.position();
-            location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
+            GameReferencesCache.goldTracker.modifyGold(goldValue);
             playDropSound = false;
+            return false;
 
         }
     }
@@ -79,17 +80,32 @@ namespace Fallen_LE_Mods.Dev
         }
     }
 
-    //[HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmberInPilesForExplicitActor", new Type[] { typeof(UnityEngine.Vector3), typeof(int), typeof(int), typeof(float), typeof(Il2CppSystem.Func<Il2Cpp.Actor, bool>) })]
 
-    //public class DropMemoryAmberInPilesForExplicitActorHandler : MelonMod
-    //{
-    //    public static void Prefix(UnityEngine.Vector3 position, int piles, int corruption, float quantityModifier, Il2CppSystem.Func<Il2Cpp.Actor, bool> actor)
-    //    {
-    //        Vector3 playerPosition = GameReferencesCache.player.position();
-    //        position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
 
-    //    }
-    //}
+    [HarmonyPatch(typeof(GroundItemManager), "dropAncientBoneForPlayer")]
+    public class GroundItemManager_dropAncientBoneForPlayer : MelonMod
+    {
+        [HarmonyPostfix]
+        static void Postfix(GroundItemManager __instance, Actor actor, int amount, UnityEngine.Vector3 position, bool unknown1, bool unknown2)
+        {
+            if (__instance == null || GameReferencesCache.player == null || __instance.activeAncientBones == null)
+                return;
+
+            Vector3 playerPosition = GameReferencesCache.player.position();
+            System.UInt32 ancien_bone_id = __instance.nextAncientBoneId - 1;
+
+            for (int i = 0; i < __instance.activeAncientBones.Count; i++)
+            {
+                var pick_ancien_bone_interaction = __instance.activeAncientBones[i];
+                if (pick_ancien_bone_interaction.id == ancien_bone_id)
+                {
+                    __instance.pickupAncientBone(actor, ancien_bone_id, pick_ancien_bone_interaction);
+                    break;
+                }
+            }
+        }
+    }
+
 
 }
 #endif
