@@ -2,6 +2,7 @@
 using Il2CppItemFiltering;
 using MelonLoader;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Rule = Il2CppItemFiltering.Rule;
 
 namespace Fallen_LE_Mods.Shared
@@ -135,7 +136,39 @@ namespace Fallen_LE_Mods.Shared
             rectTransform.pivot = new Vector2(0, 1);
             rectTransform.anchoredPosition = Vector2.zero;
         }
+    }
+
+    public static class GameObjectExtensions
+    {
+        public static GameObject GetChildByName(this GameObject parent, string name)
+        {
+            if (parent == null) return null;
+            Transform t = parent.transform.Find(name);
+            if (t != null) return t.gameObject;
+
+            for (int i = 0; i < parent.transform.childCount; i++)
+            {
+                var childTransform = parent.transform.GetChild(i);
+                if (childTransform.name == name) return childTransform.gameObject;
+                var found = childTransform.gameObject.GetChildByName(name);
+                if (found != null) return found;
+            }
+
+            return null;
+        }
 
     }
 
+    internal static class Scenes
+    {
+        private static readonly string[] SceneMenuNames = { "ClientSplash", "PersistentUI", "Login", "CharacterSelectScene" };
+
+        public static bool IsGameScene()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || System.Array.IndexOf(SceneMenuNames, scene.name) >= 0) return false;
+            return true;
+        }
+
+    }
 }
