@@ -18,6 +18,7 @@ namespace Fallen_LE_Mods.Shared
         public static InventoryPanelUI? inventoryPanelUI;
         public static Il2CppLE.Data.CharacterData? playerData;
         public static ExperienceTracker? expTracker;
+        public static GoldTracker? goldTracker;
         public static CharacterDataTracker? characterDataTracker;
         public static void Postfix(ref LoadingScreen __instance)
         {
@@ -30,6 +31,7 @@ namespace Fallen_LE_Mods.Shared
             playerData = PlayerFinder.getPlayerData();
             characterDataTracker = PlayerFinder.getPlayerDataTracker();
             expTracker = PlayerFinder.getExperienceTracker();
+            goldTracker = PlayerFinder.getLocalGoldTracker();
             player = PlayerFinder.getPlayerActor();
 
         }
