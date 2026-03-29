@@ -83,23 +83,22 @@ namespace Fallen_LE_Mods.Dev
 
 
     [HarmonyPatch(typeof(GroundItemManager), "dropAncientBoneForPlayer")]
-    public class GroundItemManager_dropAncientBoneForPlayer : MelonMod
+    public class dropAncientBoneForPlayerHandler : MelonMod
     {
-        [HarmonyPostfix]
-        static void Postfix(GroundItemManager __instance, Actor actor, int amount, UnityEngine.Vector3 position, bool unknown1, bool unknown2)
+        public static void Postfix(GroundItemManager __instance, Actor player, int amount, UnityEngine.Vector3 location, bool playDropSound, bool randomiseLocation)
         {
             if (__instance == null || GameReferencesCache.player == null || __instance.activeAncientBones == null)
                 return;
 
             Vector3 playerPosition = GameReferencesCache.player.position();
-            System.UInt32 ancien_bone_id = __instance.nextAncientBoneId - 1;
+            uint ancien_bone_id = __instance.nextAncientBoneId - 1;
 
             for (int i = 0; i < __instance.activeAncientBones.Count; i++)
             {
                 var pick_ancien_bone_interaction = __instance.activeAncientBones[i];
                 if (pick_ancien_bone_interaction.id == ancien_bone_id)
                 {
-                    __instance.pickupAncientBone(actor, ancien_bone_id, pick_ancien_bone_interaction);
+                    __instance.pickupAncientBone(player, ancien_bone_id, pick_ancien_bone_interaction);
                     break;
                 }
             }
