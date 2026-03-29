@@ -91,6 +91,7 @@ namespace Fallen_LE_Mods.Dev
                 return;
 
             Vector3 playerPosition = GameReferencesCache.player.position();
+            location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
             uint ancien_bone_id = __instance.nextAncientBoneId - 1;
 
             for (int i = 0; i < __instance.activeAncientBones.Count; i++)
