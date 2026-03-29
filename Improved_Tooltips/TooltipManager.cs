@@ -43,7 +43,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                 int ownedLP = matchedUniqueOrSet.legendaryPotential;
                 string LPdesc = ownedLP > item.legendaryPotential ? $"higher LP : {ownedLP}" :
                                 ownedLP < item.legendaryPotential ? $"lower LP : {ownedLP}" :
-                                matchedUniqueOrSet.Equals(item) ? "Self" : "Duplicate";
+                                matchedUniqueOrSet.Equals(item) ? "Self" : $"same LP ({ownedLP})";
                 additions += $"\n\nAlready Owned with {LPdesc}";
             }
             else if (item.isUniqueSetOrLegendary())
