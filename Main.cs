@@ -44,6 +44,7 @@ namespace Fallen_LE_Mods
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
+            Cosmetics_Offline.OnSceneLoaded(buildIndex, sceneName);
             if (pauseScenes.Contains(sceneName))
             {
                 GameStatsTracker.Pause();

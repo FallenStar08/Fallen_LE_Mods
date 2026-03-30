@@ -1,81 +1,66 @@
 ﻿using Fallen_LE_Mods.Shared;
-using HarmonyLib;
 using Il2Cpp;
-using Il2CppLE.Services.Cosmetics;
 using Il2CppRewired.Utils;
 using MelonLoader;
 using UnityEngine;
+using HarmonyLib;
+using Il2CppLE.Services.Cosmetics;
 
-namespace Fallen_LE_Mods.Dev.Cosmetics
+namespace Fallen_LE_Mods.Dev;
+
+[RegisterTypeInIl2Cpp]
+public class Cosmetics_Offline : MonoBehaviour
 {
-    [RegisterTypeInIl2Cpp]
-    public class Cosmetics_Offline : MonoBehaviour
+    public static Cosmetics_Offline? Instance { get; private set; }
+    private static Il2CppSystem.Collections.Generic.List<string>? _cachedListId;
+
+    public Cosmetics_Offline(System.IntPtr ptr) : base(ptr) { }
+
+    void Awake() => Instance = this;
+
+    public static void OnSceneLoaded(int buildIndex, string sceneName)
     {
-        public static Cosmetics_Offline instance { get; private set; }
-        public Cosmetics_Offline(System.IntPtr ptr) : base(ptr) { }
-
-        public static bool Initialized = false;
-        public static Il2CppSystem.Collections.Generic.List<string> list_id = null;
-
-        void Awake()
+        if (Scenes.IsGameScene())
         {
-            instance = this;
+            Instance?.TryDisableCosmeticsUI();
         }
-        void Update()
+    }
+
+    private void TryDisableCosmeticsUI()
+    {
+        var cosmeticsBtn = GameReferencesCache.gameUiBase?.bottomScreenMenu?
+            .gameObject.GetChildByName("BottomScreenMenuPanel")?
+            .GetChildByName("Cosmetics");
+
+        if (cosmeticsBtn != null)
         {
-            if (Scenes.IsGameScene())
-            {
-                if (!Initialized) { Init(); }
-            }
-            else { Initialized = false; }
+            cosmeticsBtn.active = false;
         }
-        void Init()
+    }
+
+    [HarmonyPatch(typeof(CosmeticsManager), "GetOwnedCosmetics")]
+    public class CosmeticsManager_GetOwnedCosmetics
+    {
+        [HarmonyPrefix]
+        static bool Prefix(ref Il2CppCysharp.Threading.Tasks.UniTask<Il2CppSystem.Collections.Generic.List<string>> __result)
         {
-            if (!GameReferencesCache.gameUiBase.IsNullOrDestroyed())
+            if (_cachedListId.IsNullOrDestroyed())
             {
-                GameObject go = GameReferencesCache.gameUiBase.bottomScreenMenu.gameObject;
-                if (!go.IsNullOrDestroyed())
+                _cachedListId = new Il2CppSystem.Collections.Generic.List<string>();
+
+                var allCosmetics = Resources.FindObjectsOfTypeAll<Cosmetic>();
+
+                foreach (var c in allCosmetics)
                 {
-                    GameObject panel = go.GetChildByName("BottomScreenMenuPanel");
-                    if (!panel.IsNullOrDestroyed())
+                    if (c != null && !string.IsNullOrEmpty(c.BackendID) && !_cachedListId.Contains(c.BackendID))
                     {
-                        GameObject cosmetics = panel.GetChildByName("Cosmetics");
-                        if (!cosmetics.IsNullOrDestroyed())
-                        {
-                            cosmetics.active = false;
-                            Initialized = true;
-                        }
+                        _cachedListId.Add(c.BackendID);
                     }
                 }
             }
-        }
 
-        [HarmonyPatch(typeof(CosmeticsManager), "GetOwnedCosmetics")]
-        public class CosmeticsManager_GetOwnedCosmetics
-        {
-            [HarmonyPrefix]
-            static bool Prefix(ref CosmeticsManager __instance, ref Il2CppCysharp.Threading.Tasks.UniTask<Il2CppSystem.Collections.Generic.List<string>> __result)
-            {
-                if (list_id.IsNullOrDestroyed())
-                {
-                    System.Collections.Generic.List<Cosmetic> cosmetics = new System.Collections.Generic.List<Cosmetic>();
-                    foreach (Cosmetic cosmetic in Resources.FindObjectsOfTypeAll<Cosmetic>()) { cosmetics.Add(cosmetic); }
-                    if (cosmetics != null && cosmetics.Count > 0)
-                    {
-                        list_id = new Il2CppSystem.Collections.Generic.List<string>();
-                        foreach (Cosmetic cosmetic in cosmetics)
-                        {
-                            if (!list_id.Contains(cosmetic.BackendID)) { list_id.Add(cosmetic.BackendID); }
-                        }
-                    }
-                }
-
-                __result = new Il2CppCysharp.Threading.Tasks.UniTask<Il2CppSystem.Collections.Generic.List<string>>(list_id);
-
-                return false;
-            }
+            __result = new Il2CppCysharp.Threading.Tasks.UniTask<Il2CppSystem.Collections.Generic.List<string>>(_cachedListId!);
+            return false;
         }
     }
 }
-
-
