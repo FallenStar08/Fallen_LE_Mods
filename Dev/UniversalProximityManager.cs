@@ -61,12 +61,17 @@ namespace Fallen_LE_Mods.Dev
         {
             if (go.name.Contains("Cache Click Listener")) return true;
 
-            Transform parent = go.transform.parent;
-            if (parent != null)
+            Transform current = go.transform.parent;
+            while (current != null)
             {
-                string pName = parent.name;
-                return pName.Contains("Shrine Placement Manager") ||
-                       pName.Contains("Chest Placement Manager");
+                string pName = current.name;
+                if (pName.Contains("Shrine Placement Manager") ||
+                    pName.Contains("Chest Placement Manager") ||
+                    pName.Contains("Tomb Reward Chest"))
+                {
+                    return true;
+                }
+                current = current.parent;
             }
             return false;
         }
