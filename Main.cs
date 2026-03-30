@@ -53,8 +53,6 @@ namespace Fallen_LE_Mods
                 GameStatsTracker.Resume();
             }
 
-            //ShrineAutoActivator.OnSceneWasLoadedHandler(buildIndex, sceneName);
-
         }
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName)
