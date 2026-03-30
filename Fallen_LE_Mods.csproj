@@ -566,12 +566,6 @@
 		<Content Remove="deprecated\**\*" />
 		<Content Remove="WIP\**\*" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Compile Include="WIP\AutoSortInventory.cs" />
-	</ItemGroup>
-	<ItemGroup>
-	  <None Include="WIP\AutoSortInventory.cs" />
-	</ItemGroup>
 
 	<!-- regex-replace text in a file -->
 	<UsingTask TaskName="RegexReplace" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.Core">
