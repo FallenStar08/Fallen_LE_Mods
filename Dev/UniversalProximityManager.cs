@@ -6,6 +6,7 @@ using Il2Cpp;
 using Il2CppInterop.Runtime;
 using MelonLoader;
 using UnityEngine;
+using static Fallen_LE_Mods.Shared.FallenUtils;
 
 namespace Fallen_LE_Mods.Dev
 {
@@ -21,7 +22,7 @@ namespace Fallen_LE_Mods.Dev
         {
             if (running) return;
 
-            MelonLogger.Msg("[UniversalManager] Initializing Global Proximity System...");
+            Log("[UniversalManager] Initializing Global Proximity System...");
             MelonCoroutines.Start(UpdateLoop());
             MelonCoroutines.Start(ScannerLoop(5f));
             running = true;
@@ -64,9 +65,14 @@ namespace Fallen_LE_Mods.Dev
         {
             while (true)
             {
-                // Cache player if missing
-                if (player == null && GameReferencesCache.player != null)
-                    player = GameReferencesCache.player.gameObject;
+                if (player == null || player.Pointer == IntPtr.Zero || !player.activeInHierarchy)
+                {
+                    if (GameReferencesCache.player != null)
+                    {
+                        player = GameReferencesCache.player.gameObject;
+                        Log("[UniversalManager] Re-acquired Player Reference.");
+                    }
+                }
 
                 if (player != null && activeObjects.Count > 0)
                 {
@@ -102,7 +108,7 @@ namespace Fallen_LE_Mods.Dev
             if (listener != null)
             {
                 listener.ObjectClick(go, true);
-                MelonLogger.Msg($"[UniversalManager] Auto-Activated: {go.name}");
+                Log($"[UniversalManager] Auto-Activated: {go.name}");
             }
         }
     }
