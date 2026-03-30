@@ -557,13 +557,20 @@
 		<Compile Include="Shared\**\*.cs" />
 	</ItemGroup>
 
-	<!-- Exclude deprecated folder from all build actions -->
+	<!-- Exclude deprecated/WIP folder from all build actions -->
 	<ItemGroup>
 		<Compile Remove="deprecated\**\*.cs" />
-
+		<Compile Remove="WIP\**\*.cs" />
 		<None Include="deprecated\**\*" />
-
+		<None Include="WIP\**\*" />
 		<Content Remove="deprecated\**\*" />
+		<Content Remove="WIP\**\*" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Include="WIP\AutoSortInventory.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Include="WIP\AutoSortInventory.cs" />
 	</ItemGroup>
 
 	<!-- regex-replace text in a file -->
