@@ -133,6 +133,13 @@ namespace Fallen_LE_Mods.Dev
     {
         public static void Postfix()
         {
+            MelonCoroutines.Start(DelayedSweep());
+        }
+        private static IEnumerator DelayedSweep()
+        {
+
+            yield return new WaitForSeconds(0.5f);
+
             UniversalProximityManager.PerformFullSceneSweep();
         }
     }
