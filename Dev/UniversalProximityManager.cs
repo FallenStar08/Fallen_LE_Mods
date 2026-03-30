@@ -6,110 +6,134 @@ using Il2Cpp;
 using Il2CppInterop.Runtime;
 using MelonLoader;
 using UnityEngine;
+using HarmonyLib;
 using static Fallen_LE_Mods.Shared.FallenUtils;
 
 namespace Fallen_LE_Mods.Dev
 {
     public static class UniversalProximityManager
     {
-        private static readonly List<GameObject> activeObjects = new();
+        private struct TrackedObject
+        {
+            public IntPtr Ptr;
+            public Transform Trans;
+            public WorldObjectClickListener Listener;
+        }
+
+        private static readonly List<TrackedObject> activeObjects = new();
         private static readonly HashSet<IntPtr> knownPtrs = new();
 
-        private static GameObject? player;
+        private static Transform? playerTrans;
         private static bool running = false;
+        private const float SQUARED_DIST_LIMIT = 25f;
 
         public static void Initialize()
         {
             if (running) return;
-
-            Log("[UniversalManager] Initializing Global Proximity System...");
             MelonCoroutines.Start(UpdateLoop());
-            MelonCoroutines.Start(ScannerLoop(5f));
             running = true;
         }
 
-        public static void Register(GameObject go)
+        public static void PerformFullSceneSweep()
         {
-            if (go == null) return;
-            IntPtr ptr = go.Pointer;
+            Log("[Proximity Manager] Zone Change Detected. Performing Deep Sweep UwU...");
 
-            if (!knownPtrs.Contains(ptr))
+            activeObjects.Clear();
+            knownPtrs.Clear();
+
+            var all = GameObject.FindObjectsOfType<WorldObjectClickListener>(true);
+
+            for (int i = 0; i < all.Length; i++)
             {
-                knownPtrs.Add(ptr);
-                activeObjects.Add(go);
+                var click = all[i];
+                if (click == null) continue;
+
+                GameObject go = click.gameObject;
+                if (IsTarget(go))
+                {
+                    Register(click, go);
+                }
             }
+            Log($"[Proximity Manager] Sweep complete. Tracking {activeObjects.Count} targets.");
         }
 
-        private static IEnumerator ScannerLoop(float interval)
+        private static bool IsTarget(GameObject go)
         {
-            while (true)
+            if (go.name.Contains("Cache Click Listener")) return true;
+
+            Transform parent = go.transform.parent;
+            if (parent != null)
             {
-                string[] managers = { "Shrine Placement Manager", "Chest Placement Manager" };
-
-                foreach (var managerName in managers)
-                {
-                    GameObject mgr = GameObject.Find(managerName);
-                    if (mgr == null) continue;
-
-                    var clickables = mgr.GetComponentsInChildren<WorldObjectClickListener>(true);
-                    foreach (var click in clickables)
-                    {
-                        Register(click.gameObject);
-                    }
-                }
-                yield return new WaitForSeconds(interval);
+                string pName = parent.name;
+                return pName.Contains("Shrine Placement Manager") ||
+                       pName.Contains("Chest Placement Manager");
             }
+            return false;
+        }
+
+        private static void Register(WorldObjectClickListener listener, GameObject go)
+        {
+            IntPtr ptr = go.Pointer;
+            if (knownPtrs.Contains(ptr)) return;
+
+            knownPtrs.Add(ptr);
+            activeObjects.Add(new TrackedObject
+            {
+                Ptr = ptr,
+                Trans = go.transform,
+                Listener = listener
+            });
         }
 
         private static IEnumerator UpdateLoop()
         {
+            var wait = new WaitForSeconds(0.4f);
             while (true)
             {
-                if (player == null || player.Pointer == IntPtr.Zero || !player.activeInHierarchy)
+                if (playerTrans == null || playerTrans.Pointer == IntPtr.Zero)
                 {
                     if (GameReferencesCache.player != null)
-                    {
-                        player = GameReferencesCache.player.gameObject;
-                        Log("[UniversalManager] Re-acquired Player Reference.");
-                    }
+                        playerTrans = GameReferencesCache.player.gameObject.transform;
                 }
 
-                if (player != null && activeObjects.Count > 0)
+                if (playerTrans != null && activeObjects.Count > 0)
                 {
-                    Vector3 playerPos = player.transform.position;
+                    Vector3 pPos = playerTrans.position;
 
                     for (int i = activeObjects.Count - 1; i >= 0; i--)
                     {
-                        GameObject obj = activeObjects[i];
+                        var obj = activeObjects[i];
 
-                        if (obj == null || obj.Pointer == IntPtr.Zero)
+                        if (obj.Ptr == IntPtr.Zero || obj.Trans == null)
                         {
                             activeObjects.RemoveAt(i);
                             continue;
                         }
 
-                        float dist = Vector3.Distance(playerPos, obj.transform.position);
+                        Vector3 diff = pPos - obj.Trans.position;
+                        float sqrMag = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
 
-                        if (dist <= 5.0f)
+                        if (sqrMag <= SQUARED_DIST_LIMIT)
                         {
-                            TriggerObject(obj);
-                            knownPtrs.Remove(obj.Pointer);
+                            obj.Listener.ObjectClick(obj.Trans.gameObject, true);
+                            Log($"[Proximity Manager] [Auto-Activate] Success: {obj.Trans.gameObject.name}");
+
                             activeObjects.RemoveAt(i);
                         }
                     }
                 }
-                yield return new WaitForSeconds(0.50f);
+                yield return wait;
             }
         }
+    }
 
-        private static void TriggerObject(GameObject go)
+
+    [HarmonyPatch(typeof(ClientSceneService), "OnActiveSceneChanged")]
+    public class SceneChangePatch
+    {
+        public static void Postfix()
         {
-            var listener = go.GetComponent<WorldObjectClickListener>();
-            if (listener != null)
-            {
-                listener.ObjectClick(go, true);
-                Log($"[UniversalManager] Auto-Activated: {go.name}");
-            }
+            UniversalProximityManager.PerformFullSceneSweep();
         }
     }
 }
