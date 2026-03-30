@@ -57,22 +57,34 @@ namespace Fallen_LE_Mods.Dev
             Log($"[Proximity Manager] Sweep complete. Tracking {activeObjects.Count} targets.");
         }
 
+        private static readonly HashSet<string> TargetKeywords = new()
+        {
+            "Shrine Placement Manager",
+            "Chest Placement Manager",
+            "Tomb Reward Chest",
+            "Monolith Reward Chest",
+            "Cache Click Listener"
+        };
+
         private static bool IsTarget(GameObject go)
         {
-            if (go.name.Contains("Cache Click Listener")) return true;
+            Transform? current = go.transform;
 
-            Transform current = go.transform.parent;
             while (current != null)
             {
-                string pName = current.name;
-                if (pName.Contains("Shrine Placement Manager") ||
-                    pName.Contains("Chest Placement Manager") ||
-                    pName.Contains("Tomb Reward Chest"))
+                string name = current.name;
+
+                foreach (var keyword in TargetKeywords)
                 {
-                    return true;
+                    if (name.Contains(keyword))
+                    {
+                        return true;
+                    }
                 }
+
                 current = current.parent;
             }
+
             return false;
         }
 
