@@ -1,6 +1,4 @@
-﻿
-
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 
@@ -533,6 +531,7 @@
 
 	</ItemGroup>
 
+	
 	<!-- Remove default file inclusion -->
 	<ItemGroup>
 		<Compile Remove="**\*.cs" />
@@ -557,14 +556,18 @@
 	<ItemGroup>
 		<Compile Include="Shared\**\*.cs" />
 	</ItemGroup>
+
+	<!-- Exclude deprecated folder from all build actions -->
 	<ItemGroup>
-	  <Compile Remove="Dev\Skins.cs" />
+		<Compile Remove="deprecated\**\*.cs" />
+
+		<None Include="deprecated\**\*" />
+
+		<Content Remove="deprecated\**\*" />
 	</ItemGroup>
 
 	<!-- regex-replace text in a file -->
-	<UsingTask TaskName="RegexReplace"
-			   TaskFactory="CodeTaskFactory"
-			   AssemblyName="Microsoft.Build.Tasks.Core">
+	<UsingTask TaskName="RegexReplace" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.Core">
 		<ParameterGroup>
 			<InputFile ParameterType="System.String" Required="true" />
 			<RegexPattern ParameterType="System.String" Required="true" />
@@ -591,10 +594,7 @@
 
 		<Message Text="Updating MelonInfo version to $(Version)" Importance="High" />
 
-		<RegexReplace
-		  InputFile="AssemblyInfo.cs"
-		  RegexPattern="\[assembly:\s*MelonInfo\(.*?\)\]"
-		  Replacement="$(NewVersion)" />
+		<RegexReplace InputFile="AssemblyInfo.cs" RegexPattern="\[assembly:\s*MelonInfo\(.*?\)\]" Replacement="$(NewVersion)" />
 
 	</Target>
 
