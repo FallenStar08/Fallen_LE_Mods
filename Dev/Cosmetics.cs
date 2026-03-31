@@ -6,6 +6,7 @@ using UnityEngine;
 using HarmonyLib;
 using Il2CppLE.Services.Cosmetics;
 
+//From https://github.com/RCInet/LastEpoch_Mods/blob/master/LastEpoch_Hud/Scripts/Mods/Cosmetics/Cosmetics_Offline.cs
 namespace Fallen_LE_Mods.Dev;
 
 [RegisterTypeInIl2Cpp]
