@@ -58,7 +58,7 @@ namespace Fallen_LE_Mods.Dev
                     Register(click, go);
                 }
             }
-            Log($"[Proximity Manager] Sweep complete. Found {activeObjects.Count} targets in {activeScene.name}:");
+            Log($"[Proximity Manager] Sweep complete. {(activeObjects.Count > 0 ? $"Found {activeObjects.Count} targets in [{activeScene.name}]:" : $"No valid targets found in [{activeScene.name}].")}");
             foreach (var obj in activeObjects)
             {
                 Log($" -> Tracked: {obj.Name}");
