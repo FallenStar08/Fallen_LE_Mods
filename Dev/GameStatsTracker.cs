@@ -110,33 +110,20 @@ namespace Fallen_LE_Mods.Dev
             }
         }
 
-        //[HarmonyPatch(typeof(Faction.FavorChangedDelegate), "Invoke")]
-        //public class FavorTracker
-        //{
-        //    private static float previousFavor = 0f;
-        //    private static bool gotFirstFavorValue = false;
-        //    private static void Postfix(ref Faction.FavorChangedDelegate __instance, ref int newFavor)
-        //    {
+        [HarmonyPatch(typeof(Faction), "GainFavor")]
+        public class FavorTracker
+        {
+            private static float previousFavor = 0f;
+            private static bool gotFirstFavorValue = false;
+            private static void Postfix(Faction __instance, int gainedFavor, bool ignoreRepGain, bool ignoreMultiplier)
+            {
+                if (gainedFavor >= 0)
+                {
+                    totalFavor += gainedFavor;
+                }
 
-        //        if (!gotFirstFavorValue)
-        //        {
-        //            gotFirstFavorValue = true;
-        //            previousFavor = newFavor;
-        //        }
-        //        else
-        //        {
-        //            float addedFavor = newFavor - previousFavor;
-        //            if (addedFavor >= 0f)
-        //            {
-        //                totalFavor += addedFavor;
-        //                //Melon<MyMod>.Logger.Msg($"Gained {(newFavor - previousFavor)} Favor");
-
-        //            }
-        //            previousFavor = newFavor;
-        //        }
-
-        //    }
-        //}
+            }
+        }
 
         [HarmonyPatch(typeof(RelayDamageEvents), "AddDamage")]
         public class DamageTracker
