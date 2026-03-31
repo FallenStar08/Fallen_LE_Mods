@@ -18,6 +18,7 @@ namespace Fallen_LE_Mods.Dev
             public IntPtr Ptr;
             public Transform Trans;
             public WorldObjectClickListener Listener;
+            public string Name;
         }
 
         private static readonly List<TrackedObject> activeObjects = new();
@@ -41,6 +42,8 @@ namespace Fallen_LE_Mods.Dev
             activeObjects.Clear();
             knownPtrs.Clear();
 
+            var activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+
             var all = GameObject.FindObjectsOfType<WorldObjectClickListener>(true);
 
             for (int i = 0; i < all.Length; i++)
@@ -49,12 +52,17 @@ namespace Fallen_LE_Mods.Dev
                 if (click == null) continue;
 
                 GameObject go = click.gameObject;
+                if (go.scene.name != activeScene.name) continue;
                 if (IsTarget(go))
                 {
                     Register(click, go);
                 }
             }
-            Log($"[Proximity Manager] Sweep complete. Tracking {activeObjects.Count} targets.");
+            Log($"[Proximity Manager] Sweep complete. Found {activeObjects.Count} targets in {activeScene.name}:");
+            foreach (var obj in activeObjects)
+            {
+                Log($" -> Tracked: {obj.Name}");
+            }
         }
 
         private static readonly HashSet<string> TargetKeywords = new()
@@ -98,7 +106,8 @@ namespace Fallen_LE_Mods.Dev
             {
                 Ptr = ptr,
                 Trans = go.transform,
-                Listener = listener
+                Listener = listener,
+                Name = go.name
             });
         }
 
