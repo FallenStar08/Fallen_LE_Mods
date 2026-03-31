@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using Fallen_LE_Mods.Dev;
+using HarmonyLib;
 using Il2Cpp;
 using Il2CppItemFiltering;
 using Il2CppLE.UI;
@@ -20,6 +21,7 @@ namespace Fallen_LE_Mods.Shared
         public static ExperienceTracker? expTracker;
         public static GoldTracker? goldTracker;
         public static CharacterDataTracker? characterDataTracker;
+        public static AncientBonesTracker? boneTracker;
         public static void Postfix(ref LoadingScreen __instance)
         {
             itemFilterManager = FallenUtils.GetFilterManager;
@@ -32,6 +34,7 @@ namespace Fallen_LE_Mods.Shared
             characterDataTracker = PlayerFinder.getPlayerDataTracker();
             expTracker = PlayerFinder.getExperienceTracker();
             goldTracker = PlayerFinder.getLocalGoldTracker();
+            boneTracker = PlayerFinder.getAncientBonesTracker();
             player = PlayerFinder.getPlayerActor();
 
         }
