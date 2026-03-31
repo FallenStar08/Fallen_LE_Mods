@@ -56,9 +56,8 @@ namespace Fallen_LE_Mods
 
         }
 
-        public override void OnSceneWasInitialized(int buildIndex, string sceneName)
+        public override void OnInitializeMelon()
         {
-            if (pauseScenes.Contains(sceneName)) return;
             UniversalProximityManager.Initialize();
         }
 
