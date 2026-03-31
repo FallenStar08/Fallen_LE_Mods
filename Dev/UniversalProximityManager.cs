@@ -2,11 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using Fallen_LE_Mods.Shared;
+using HarmonyLib;
 using Il2Cpp;
 using Il2CppInterop.Runtime;
 using MelonLoader;
 using UnityEngine;
-using HarmonyLib;
 using static Fallen_LE_Mods.Shared.FallenUtils;
 
 namespace Fallen_LE_Mods.Dev
@@ -15,100 +15,89 @@ namespace Fallen_LE_Mods.Dev
     {
         private struct TrackedObject
         {
-            public IntPtr Ptr;
+            public long PtrAddr;
             public Transform Trans;
             public WorldObjectClickListener Listener;
             public string Name;
+            public string Type;
         }
 
         private static readonly List<TrackedObject> activeObjects = new();
-        private static readonly HashSet<IntPtr> knownPtrs = new();
-
+        private static readonly HashSet<long> knownPtrs = new();
         private static Transform? playerTrans;
         private static bool running = false;
         private const float SQUARED_DIST_LIMIT = 25f;
+
+        private static readonly Dictionary<string, string> TargetKeywords = new()
+        {
+            { "Shrine Placement Manager", "Shrine" },
+            { "Chest Placement Manager", "Chest" },
+            { "Tomb Reward Chest", "Cemetery Chest" },
+            { "Monolith Reward Chest", "Monolith Chest" },
+            { "Cache Click Listener", "Cache" }
+        };
 
         public static void Initialize()
         {
             if (running) return;
             MelonCoroutines.Start(UpdateLoop());
             running = true;
+            Log("[Proximity Manager] Initialized");
         }
 
-        public static void PerformFullSceneSweep()
+        [HarmonyPatch(typeof(WorldObjectClickListener), nameof(WorldObjectClickListener.OnEnable))]
+        public class ListenerOnEnablePatch
         {
-            Log("[Proximity Manager] Zone Change Detected. Performing Deep Sweep UwU...");
-
-            activeObjects.Clear();
-            knownPtrs.Clear();
-
-            var activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-
-            var all = GameObject.FindObjectsOfType<WorldObjectClickListener>(true);
-
-            for (int i = 0; i < all.Length; i++)
+            public static void Postfix(WorldObjectClickListener __instance)
             {
-                var click = all[i];
-                if (click == null) continue;
+                if (__instance == null || __instance.Pointer == IntPtr.Zero) return;
 
-                GameObject go = click.gameObject;
-                if (go.scene.name != activeScene.name) continue;
-                if (IsTarget(go))
+                long addr = __instance.Pointer.ToInt64();
+                if (knownPtrs.Contains(addr)) return;
+
+                GameObject go = __instance.gameObject;
+                if (go == null) return;
+
+                if (TryGetTargetType(go, out string type))
                 {
-                    Register(click, go);
+                    Register(__instance, go, type, addr);
                 }
             }
-            Log($"[Proximity Manager] Sweep complete. {(activeObjects.Count > 0 ? $"Found {activeObjects.Count} targets in [{activeScene.name}]:" : $"No valid targets found in [{activeScene.name}].")}");
-            foreach (var obj in activeObjects)
-            {
-                Log($" -> Tracked: {obj.Name}");
-            }
         }
 
-        private static readonly HashSet<string> TargetKeywords = new()
+        private static bool TryGetTargetType(GameObject go, out string type)
         {
-            "Shrine Placement Manager",
-            "Chest Placement Manager",
-            "Tomb Reward Chest",
-            "Monolith Reward Chest",
-            "Cache Click Listener"
-        };
-
-        private static bool IsTarget(GameObject go)
-        {
+            type = "Unknown";
             Transform? current = go.transform;
-
             while (current != null)
             {
-                string name = current.name;
-
-                foreach (var keyword in TargetKeywords)
+                string n = current.name;
+                foreach (var entry in TargetKeywords)
                 {
-                    if (name.Contains(keyword))
+                    if (n.Contains(entry.Key))
                     {
+                        type = entry.Value;
                         return true;
                     }
                 }
-
                 current = current.parent;
             }
-
             return false;
         }
 
-        private static void Register(WorldObjectClickListener listener, GameObject go)
+        private static void Register(WorldObjectClickListener listener, GameObject go, string type, long addr)
         {
-            IntPtr ptr = go.Pointer;
-            if (knownPtrs.Contains(ptr)) return;
-
-            knownPtrs.Add(ptr);
+            knownPtrs.Add(addr);
             activeObjects.Add(new TrackedObject
             {
-                Ptr = ptr,
+                PtrAddr = addr,
                 Trans = go.transform,
                 Listener = listener,
-                Name = go.name
+                Name = go.name ?? "Unknown Object",
+                Type = type,
             });
+
+            Log($"[Proximity Manager] +Tracked [{type}]: {go.name}");
         }
 
         private static IEnumerator UpdateLoop()
@@ -116,6 +105,8 @@ namespace Fallen_LE_Mods.Dev
             var wait = new WaitForSeconds(0.4f);
             while (true)
             {
+                knownPtrs.RemoveWhere(p => p == 0);
+
                 if (playerTrans == null || playerTrans.Pointer == IntPtr.Zero)
                 {
                     if (GameReferencesCache.player != null)
@@ -130,43 +121,42 @@ namespace Fallen_LE_Mods.Dev
                     {
                         var obj = activeObjects[i];
 
-                        if (obj.Ptr == IntPtr.Zero || obj.Trans == null)
+
+                        if (obj.PtrAddr == 0 || obj.Trans == null || obj.Trans.Pointer == IntPtr.Zero)
                         {
+                            Log($"[Proximity Manager] -Unregistered (Destroyed): {obj.Name} [{obj.Type}]");
                             activeObjects.RemoveAt(i);
                             continue;
                         }
 
-                        Vector3 diff = pPos - obj.Trans.position;
-                        float sqrMag = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
-
-                        if (sqrMag <= SQUARED_DIST_LIMIT)
+                        try
                         {
-                            obj.Listener.ObjectClick(obj.Trans.gameObject, true);
-                            Log($"[Proximity Manager] [Auto-Activate] Success: {obj.Trans.gameObject.name}");
+                            if (!obj.Trans.gameObject.activeInHierarchy)
+                            {
+                                Log($"[Proximity Manager] -Unregistered (Disabled): {obj.Name} [{obj.Type}]");
+                                activeObjects.RemoveAt(i);
+                                continue;
+                            }
 
+                            Vector3 diff = pPos - obj.Trans.position;
+                            float sqrMag = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+
+                            if (sqrMag <= SQUARED_DIST_LIMIT)
+                            {
+                                obj.Listener.ObjectClick(obj.Trans.gameObject, true);
+                                Log($"[Proximity Manager] [Auto-Activate] Success: {obj.Name} ({obj.Type})");
+                                activeObjects.RemoveAt(i);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log($"[Proximity Manager] -Unregistered (Error): {obj.Name} | {e.Message}");
                             activeObjects.RemoveAt(i);
                         }
                     }
                 }
                 yield return wait;
             }
-        }
-    }
-
-
-    [HarmonyPatch(typeof(ClientSceneService), "OnActiveSceneChanged")]
-    public class SceneChangePatch
-    {
-        public static void Postfix()
-        {
-            MelonCoroutines.Start(DelayedSweep());
-        }
-        private static IEnumerator DelayedSweep()
-        {
-
-            yield return new WaitForSeconds(0.5f);
-
-            UniversalProximityManager.PerformFullSceneSweep();
         }
     }
 }
