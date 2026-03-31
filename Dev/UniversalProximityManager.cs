@@ -133,6 +133,8 @@ namespace Fallen_LE_Mods.Dev
                         {
                             if (!obj.Trans.gameObject.activeInHierarchy)
                             {
+                                //allows the OnEnable patch to "see" it again if the game flickers it
+                                knownPtrs.Remove(obj.PtrAddr);
                                 Log($"[Proximity Manager] -Unregistered (Disabled): {obj.Name} [{obj.Type}]");
                                 activeObjects.RemoveAt(i);
                                 continue;
