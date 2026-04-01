@@ -48,7 +48,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                         ? $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>"
                         : "";
                     string wwDisplay = !IsKgImprovementsLoaded
-                        ? $" <color=#FF0000>[WW:{itemData.weaversWill}]</color>"
+                        ? $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>"
                         : "";
                     string comparisonSymbol = "";
 
