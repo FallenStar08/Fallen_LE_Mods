@@ -43,31 +43,38 @@ namespace Fallen_LE_Mods.Improved_Tooltips
 
                 if (itemData.isUnique())
                 {
-                    int currentLP = itemData.legendaryPotential;
-                    string lpDisplay = !IsKgImprovementsLoaded
-                        ? $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>"
-                        : "";
-                    string wwDisplay = !IsKgImprovementsLoaded
-                        ? $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>"
-                        : "";
+                    string statsDisplay = "";
+                    if (!IsKgImprovementsLoaded)
+                    {
+                        //WW>LP
+                        if (itemData.weaversWill > 0)
+                        {
+                            statsDisplay = $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>";
+                        }
+                        else
+                        {
+                            statsDisplay = $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>";
+                        }
+                    }
                     string comparisonSymbol = "";
 
                     ItemDataUnpacked matchedInStash = FallenUtils.FindSimilarUniqueItemInStash(itemData);
 
                     if (matchedInStash != null)
                     {
-                        int stashLP = matchedInStash.legendaryPotential;
+                        int currentStat = (itemData.weaversWill > 0) ? itemData.weaversWill : itemData.legendaryPotential;
+                        int stashStat = (itemData.weaversWill > 0) ? matchedInStash.weaversWill : matchedInStash.legendaryPotential;
 
-                        comparisonSymbol = stashLP > currentLP ? " <color=#FF0000>↓</color>" :
-                                         stashLP < currentLP ? " <color=#00FF00>↑</color>" :
-                                                               " <color=#0000FF>=</color>";
+                        comparisonSymbol = stashStat > currentStat ? " <color=#FF0000>↓</color>" :
+                                           stashStat < currentStat ? " <color=#00FF00>↑</color>" :
+                                                                     " <color=#0000FF>=</color>";
                     }
                     else if (itemData.isUniqueSetOrLegendary())
                     {
                         comparisonSymbol = " <i><color=#FFD700>NEW</color></i>";
                     }
 
-                    string newFullText = $"{currentText}{wwDisplay}{lpDisplay}{comparisonSymbol}{LabelMarker}";
+                    string newFullText = $"{currentText}{statsDisplay}{comparisonSymbol}{LabelMarker}";
 
                     if (item.emphasized) newFullText = newFullText.ToUpper();
 
