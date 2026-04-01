@@ -47,6 +47,9 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                     string lpDisplay = !IsKgImprovementsLoaded
                         ? $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>"
                         : "";
+                    string wwDisplay = !IsKgImprovementsLoaded
+                        ? $" <color=#FF0000>[WW:{itemData.weaversWill}]</color>"
+                        : "";
                     string comparisonSymbol = "";
 
                     ItemDataUnpacked matchedInStash = FallenUtils.FindSimilarUniqueItemInStash(itemData);
@@ -64,7 +67,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                         comparisonSymbol = " <i><color=#FFD700>NEW</color></i>";
                     }
 
-                    string newFullText = $"{currentText}{lpDisplay}{comparisonSymbol}{LabelMarker}";
+                    string newFullText = $"{currentText}{wwDisplay}{lpDisplay}{comparisonSymbol}{LabelMarker}";
 
                     if (item.emphasized) newFullText = newFullText.ToUpper();
 
