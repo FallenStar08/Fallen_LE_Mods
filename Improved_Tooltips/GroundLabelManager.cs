@@ -45,17 +45,22 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                 string statsDisplay = "";
                 string statusSuffix = "";
 
+                bool isSet = itemData.isSet();
+
                 if (!IsKgImprovementsLoaded)
                 {
                     baseName = itemData.FullName;
 
-                    if (itemData.weaversWill > 0)
+                    if (!isSet)
                     {
-                        statsDisplay = $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>";
-                    }
-                    else
-                    {
-                        statsDisplay = $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>";
+                        if (itemData.weaversWill > 0)
+                        {
+                            statsDisplay = $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>";
+                        }
+                        else
+                        {
+                            statsDisplay = $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>";
+                        }
                     }
                 }
 
@@ -63,7 +68,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
 
                 if (matchedInStash != null)
                 {
-                    if (itemData.isSet())
+                    if (isSet)
                     {
                         statusSuffix = " <color=#00FF00>[OWNED]</color>";
                     }
