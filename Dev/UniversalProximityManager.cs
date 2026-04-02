@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using Fallen_LE_Mods.Shared;
 using HarmonyLib;
 using Il2Cpp;
-using Il2CppInterop.Runtime;
 using MelonLoader;
 using UnityEngine;
 using static Fallen_LE_Mods.Shared.FallenUtils;
@@ -41,27 +38,55 @@ namespace Fallen_LE_Mods.Dev
         {
             if (running) return;
             MelonCoroutines.Start(UpdateLoop());
+            MelonCoroutines.Start(InitialStartupSweep());
             running = true;
             Log("[Proximity Manager] Initialized");
         }
 
+        //Sanity check
+        private static IEnumerator InitialStartupSweep()
+        {
+            yield return new WaitForSeconds(1f);
+            var all = GameObject.FindObjectsOfType<WorldObjectClickListener>(true);
+            foreach (var listener in all)
+            {
+                ProcessPotentialTarget(listener);
+            }
+        }
+        //Objects Birth
+        [HarmonyPatch(typeof(InteractableListener), nameof(InteractableListener.Awake))]
+        public class ListenerAwakePatch
+        {
+            public static void Postfix(InteractableListener __instance)
+            {
+                if (__instance == null) return;
+                var listener = __instance.TryCast<WorldObjectClickListener>();
+                if (listener != null) ProcessPotentialTarget(listener);
+            }
+        }
+        //Pooled objects?
         [HarmonyPatch(typeof(WorldObjectClickListener), nameof(WorldObjectClickListener.OnEnable))]
         public class ListenerOnEnablePatch
         {
             public static void Postfix(WorldObjectClickListener __instance)
             {
-                if (__instance == null || __instance.Pointer == IntPtr.Zero) return;
+                ProcessPotentialTarget(__instance);
+            }
+        }
 
-                long addr = __instance.Pointer.ToInt64();
-                if (knownPtrs.Contains(addr)) return;
+        private static void ProcessPotentialTarget(WorldObjectClickListener listener)
+        {
+            if (listener == null || listener.Pointer == IntPtr.Zero) return;
 
-                GameObject go = __instance.gameObject;
-                if (go == null) return;
+            long addr = listener.Pointer.ToInt64();
+            if (knownPtrs.Contains(addr)) return;
 
-                if (TryGetTargetType(go, out string type))
-                {
-                    Register(__instance, go, type, addr);
-                }
+            GameObject go = listener.gameObject;
+            if (go == null) return;
+
+            if (TryGetTargetType(go, out string type))
+            {
+                Register(listener, go, type, addr);
             }
         }
 
