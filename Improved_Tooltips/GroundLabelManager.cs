@@ -4,7 +4,6 @@ using Il2Cpp;
 using Il2CppRewired.Utils;
 using Il2CppTMPro;
 using MelonLoader;
-using UnityEngine;
 
 namespace Fallen_LE_Mods.Improved_Tooltips
 {
@@ -13,6 +12,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
         private static bool? _isKgImprovementsLoaded;
         public static bool IsKgImprovementsLoaded => _isKgImprovementsLoaded ??=
             MelonMod.RegisteredMelons.Any(m => m.Info.Name == "kg_LastEpoch_Improvements");
+
         public static class GroundLabelPatch
         {
             public static void Postfix(GroundItemLabel __instance)
@@ -31,7 +31,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                 try
                 {
                     itemData = item.getItemData();
-                    if (itemData.IsNullOrDestroyed()) yield break;
+                    if (itemData.IsNullOrDestroyed() || !itemData.isUniqueSetOrLegendary()) yield break;
                 }
                 catch { yield break; }
 
@@ -41,46 +41,53 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                 string currentText = itemText.text;
                 if (currentText.Contains(LabelMarker)) yield break;
 
-                if (itemData.isUnique())
+                string baseName = currentText;
+                string statsDisplay = "";
+                string statusSuffix = "";
+
+                if (!IsKgImprovementsLoaded)
                 {
-                    string statsDisplay = "";
-                    if (!IsKgImprovementsLoaded)
+                    baseName = itemData.FullName;
+
+                    if (itemData.weaversWill > 0)
                     {
-                        //WW>LP
-                        if (itemData.weaversWill > 0)
-                        {
-                            statsDisplay = $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>";
-                        }
-                        else
-                        {
-                            statsDisplay = $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>";
-                        }
+                        statsDisplay = $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>";
                     }
-                    string comparisonSymbol = "";
+                    else
+                    {
+                        statsDisplay = $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>";
+                    }
+                }
 
-                    ItemDataUnpacked matchedInStash = FallenUtils.FindSimilarUniqueItemInStash(itemData);
+                ItemDataUnpacked matchedInStash = FallenUtils.FindSimilarUniqueItemInStash(itemData);
 
-                    if (matchedInStash != null)
+                if (matchedInStash != null)
+                {
+                    if (itemData.isSet())
+                    {
+                        statusSuffix = " <color=#00FF00>[OWNED]</color>";
+                    }
+                    else
                     {
                         int currentStat = (itemData.weaversWill > 0) ? itemData.weaversWill : itemData.legendaryPotential;
                         int stashStat = (itemData.weaversWill > 0) ? matchedInStash.weaversWill : matchedInStash.legendaryPotential;
 
-                        comparisonSymbol = stashStat > currentStat ? " <color=#FF0000>↓</color>" :
-                                           stashStat < currentStat ? " <color=#00FF00>↑</color>" :
-                                                                     " <color=#0000FF>=</color>";
+                        statusSuffix = stashStat > currentStat ? " <color=#FF0000>↓</color>" :
+                                       stashStat < currentStat ? " <color=#00FF00>↑</color>" :
+                                                                 " <color=#0000FF>=</color>";
                     }
-                    else if (itemData.isUniqueSetOrLegendary())
-                    {
-                        comparisonSymbol = " <i><color=#FFD700>NEW</color></i>";
-                    }
-
-                    string newFullText = $"{currentText}{statsDisplay}{comparisonSymbol}{LabelMarker}";
-
-                    if (item.emphasized) newFullText = newFullText.ToUpper();
-
-                    itemText.text = newFullText;
-                    item.sceneFollower?.calculateDimensions();
                 }
+                else
+                {
+                    statusSuffix = " <i><color=#FFD700>NEW</color></i>";
+                }
+
+                string newFullText = $"{baseName}{statsDisplay}{statusSuffix}{LabelMarker}";
+
+                if (item.emphasized) newFullText = newFullText.ToUpper();
+
+                itemText.text = newFullText;
+                item.sceneFollower?.calculateDimensions();
             }
         }
     }
