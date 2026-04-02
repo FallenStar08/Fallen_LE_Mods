@@ -9,7 +9,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
 {
     public class TooltipManager : MelonMod
     {
-        private const string LoreMarker = "\u200B\u200B\u200B";
+        private const string LoreMarker = "\u200B\u200B\u200B"; // Invisible marker
 
         private static void HandleTooltipUpdate(ItemDataUnpacked item)
         {
