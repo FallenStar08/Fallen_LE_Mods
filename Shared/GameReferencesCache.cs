@@ -21,6 +21,7 @@ namespace Fallen_LE_Mods.Shared
         public static GoldTracker? goldTracker;
         public static CharacterDataTracker? characterDataTracker;
         public static AncientBonesTracker? boneTracker;
+        //public static CraftingManager? craftingManager;
         public static void Postfix(ref LoadingScreen __instance)
         {
             itemFilterManager = FallenUtils.GetFilterManager;
@@ -35,6 +36,7 @@ namespace Fallen_LE_Mods.Shared
             goldTracker = PlayerFinder.getLocalGoldTracker();
             boneTracker = PlayerFinder.getAncientBonesTracker();
             player = PlayerFinder.getPlayerActor();
+            //craftingManager = ItemContainersManager.Instance.craftingManager;
 
         }
     }
