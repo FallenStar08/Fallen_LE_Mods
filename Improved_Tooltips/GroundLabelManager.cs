@@ -64,7 +64,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                     }
                 }
 
-                ItemDataUnpacked matchedInStash = FallenUtils.FindSimilarUniqueItemInStash(itemData);
+                ItemDataUnpacked matchedInStash = FallenUtils.FindSimilarUniqueItemInStash(itemData, itemData.weaversWill > 0);
 
                 if (matchedInStash != null)
                 {

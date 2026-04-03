@@ -36,17 +36,17 @@ namespace Fallen_LE_Mods.Improved_Tooltips
 
             if (item.isUniqueSetOrLegendary())
             {
-                ItemDataUnpacked? matchedInStash = FallenUtils.FindSimilarUniqueItemInStash(item);
+                bool isWW = item.weaversWill > 0;
+                ItemDataUnpacked? matchedInStash = FallenUtils.FindSimilarUniqueItemInStash(item, isWW);
 
-                if (matchedInStash != null)
+                if (matchedInStash != null && matchedInStash.Pointer != item.Pointer)
                 {
                     if (item.isSet())
                     {
-                        additions += "\n\n<color=#00FF00>[OWNED]</color>";
+                        additions += "\n\n<color=#00FF00>[OWNED - IN STASH]</color>";
                     }
                     else
                     {
-                        bool isWW = item.weaversWill > 0;
                         int currentVal = isWW ? item.weaversWill : item.legendaryPotential;
                         int stashVal = isWW ? matchedInStash.weaversWill : matchedInStash.legendaryPotential;
 
@@ -54,16 +54,35 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                         string statName = isWW ? "WW" : "LP";
 
                         string comparison;
-                        if (stashVal > currentVal) comparison = $"<color=#FF0000>↓</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
-                        else if (stashVal < currentVal) comparison = $"<color=#00FF00>↑</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
-                        else comparison = $"<color=#0000FF>=</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
+                        if (stashVal > currentVal)
+                            comparison = $"<color=#FF0000>↓</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
+                        else if (stashVal < currentVal)
+                            comparison = $"<color=#00FF00>↑</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
+                        else
+                            comparison = $"<color=#0000FF>=</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
 
                         additions += $"\n\n<color=#00FF00>[OWNED]</color> - <color={statColor}>[{statName}:{currentVal}]</color> {comparison}";
                     }
                 }
                 else
                 {
-                    additions += "\n\n<i><color=#FFD700>NEW - NOT IN STASH</color></i>";
+                    if (matchedInStash != null && matchedInStash.Pointer == item.Pointer)
+                    {
+                        if (item.isSet())
+                        {
+                            additions += "\n\n<color=#00FF00>[OWNED - IN STASH (Self)]</color>";
+                        }
+                        else
+                        {
+                            string statName = isWW ? "WW" : "LP";
+                            string diamond = "<rotate=45><voffset=0.2em><size=80%>■</size></voffset></rotate>";
+                            additions += $"\n\n<color=#FFD700>{diamond} BEST {statName} IN STASH {diamond}</color>";
+                        }
+                    }
+                    else
+                    {
+                        additions += "\n\n<i><color=#FFD700>[NEW - NOT IN STASH]</color></i>";
+                    }
                 }
             }
 
