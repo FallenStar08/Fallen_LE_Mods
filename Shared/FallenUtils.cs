@@ -90,39 +90,33 @@ namespace Fallen_LE_Mods.Shared
             return null;
         }
 
-        public static ItemDataUnpacked? FindSimilarUniqueItemInStash(ItemDataUnpacked _item)
+        public static ItemDataUnpacked? FindSimilarUniqueItemInStash(ItemDataUnpacked _item, bool preferWW)
         {
-            if (!_item.isUniqueSetOrLegendary()) { return null; }
-            ;
-            if (GameReferencesCache.playerStash == null) { return null; }
-            ItemDataUnpacked? highestLPmatch = null;
+            if (!_item.isUniqueSetOrLegendary() || GameReferencesCache.playerStash == null) return null;
+
+            ItemDataUnpacked? bestMatch = null;
+            int bestValue = -1;
+
             foreach (ItemContainer stashtab in GameReferencesCache.playerStash)
             {
                 foreach (ItemContainerEntry itemEntry in stashtab.content)
                 {
-                    //uniqueID 0 for non unique/sets
                     var data = itemEntry.data;
-                    if (data.isUniqueSetOrLegendary() && _item.uniqueID == data.uniqueID)
+                    if (data == null) continue;
+
+                    if (data.isUniqueSetOrLegendary() && data.uniqueID == _item.uniqueID)
                     {
-                        if (highestLPmatch == null)
-                        {
-                            highestLPmatch = data.getAsUnpacked();
+                        int currentValue = preferWW ? data.weaversWill : data.legendaryPotential;
 
-                        }
-                        else
+                        if (bestMatch == null || currentValue > bestValue)
                         {
-                            if (data.legendaryPotential > highestLPmatch.legendaryPotential)
-                            {
-                                highestLPmatch = data.getAsUnpacked();
-                            }
-
+                            bestValue = currentValue;
+                            bestMatch = data.getAsUnpacked();
                         }
                     }
                 }
-
             }
-            //FallenUtils.Log($"Returned highestLPmatch {highestLPmatch}");
-            return highestLPmatch;
+            return bestMatch;
         }
 
         /// <summary>
