@@ -23,7 +23,7 @@ namespace Fallen_LE_Mods.Dev
         private static readonly HashSet<long> knownPtrs = new();
         private static Transform? playerTrans;
         private static bool running = false;
-        private const float SQUARED_DIST_LIMIT = 25f;
+        private const float SQUARED_DIST_LIMIT = 32f;
 
         private static readonly Dictionary<string, string> TargetKeywords = new()
         {
