@@ -612,9 +612,18 @@
 		<ShouldZip>true</ShouldZip>
 		<DefineConstants>$(DefineConstants);AUTO_ENABLER</DefineConstants>
 	</PropertyGroup>
-	
-	
+
+
 	<Target Name="ZipNexusRelease" AfterTargets="Build" Condition="'$(ShouldZip)' == 'true'">
+		<ReadLinesFromFile File="BuildInfo.cs">
+			<Output TaskParameter="Lines" ItemName="BuildInfoLines"/>
+		</ReadLinesFromFile>
+
+		<PropertyGroup>
+			<InFileContext>@(BuildInfoLines)</InFileContext>
+			<ExtractedVersion>$([System.Text.RegularExpressions.Regex]::Match($(InFileContext), `public const string Version = \"([^\"]+)\"`).Groups[1].Value)</ExtractedVersion>
+		</PropertyGroup>
+
 		<ItemGroup>
 			<FilesToZip Include="$(TargetDir)$(TargetFileName)" />
 			<FilesToZip Include="manifest.json" Condition="Exists('manifest.json')" />
@@ -623,7 +632,7 @@
 
 		<PropertyGroup>
 			<DownloadDir>F:\Downloads\</DownloadDir>
-			<ZipOutputPath>$(DownloadDir)$(AssemblyName)_v$(Version).zip</ZipOutputPath>
+			<ZipOutputPath>$(DownloadDir)$(AssemblyName)_v$(ExtractedVersion).zip</ZipOutputPath>
 		</PropertyGroup>
 
 		<MakeDir Directories="$(DownloadDir)" />
@@ -634,9 +643,6 @@
 
 		<Exec Command="powershell -NoLogo -NoProfile -Command &quot;Compress-Archive -Path $(FilesList) -DestinationPath '$(ZipOutputPath)' -Force&quot;" />
 	</Target>
-
-
-
 
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'RELEASE'">
