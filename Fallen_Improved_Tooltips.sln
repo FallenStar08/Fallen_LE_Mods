@@ -1,19 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.6.33723.286
+# Visual Studio Version 18
+VisualStudioVersion = 18.5.11619.145
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fallen_LE_Mods", "Fallen_LE_Mods.csproj", "{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		AUTO_ENABLER|Any CPU = AUTO_ENABLER|Any CPU
 		Debug|Any CPU = Debug|Any CPU
+		IMPROVED_TOOLTIPS|Any CPU = IMPROVED_TOOLTIPS|Any CPU
 		NexusRelease|Any CPU = NexusRelease|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}.AUTO_ENABLER|Any CPU.ActiveCfg = AUTO_ENABLER|Any CPU
+		{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}.AUTO_ENABLER|Any CPU.Build.0 = AUTO_ENABLER|Any CPU
 		{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}.Debug|Any CPU.ActiveCfg = Release|Any CPU
 		{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}.IMPROVED_TOOLTIPS|Any CPU.ActiveCfg = IMPROVED_TOOLTIPS|Any CPU
+		{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}.IMPROVED_TOOLTIPS|Any CPU.Build.0 = IMPROVED_TOOLTIPS|Any CPU
 		{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}.NexusRelease|Any CPU.ActiveCfg = NexusRelease|Any CPU
 		{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}.NexusRelease|Any CPU.Build.0 = NexusRelease|Any CPU
 		{5DCC4DD7-03DE-4020-96D2-5B1F161253A3}.Release|Any CPU.ActiveCfg = Release|Any CPU

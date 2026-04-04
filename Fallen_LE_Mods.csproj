@@ -2,13 +2,13 @@
 
   <PropertyGroup>
 
-		  <Version>3.1.2</Version>
+		  <Version>1.0.0</Version>
 
 
 	  <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Configurations>Debug;Release;NexusRelease</Configurations>
+    <Configurations>Debug;Release;NexusRelease;IMROVED_TOOLTIPS;AUTO_ENABLER;IMPROVED_TOOLTIPS</Configurations>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -545,11 +545,16 @@
 	<ItemGroup Condition="'$(Configuration)' == 'RELEASE'">
 		<Compile Include="Dev\**\*.cs" />
 		<Compile Include="Improved_Tooltips\**\*.cs" />
+		<Compile Include="Auto_Enabler\**\*.cs" />
 		<Compile Include="MonoScripts\**\*.cs" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'NEXUSRELEASE'">
+	<ItemGroup Condition="'$(Configuration)' == 'IMPROVED_TOOLTIPS'">
 		<Compile Include="Improved_Tooltips\**\*.cs" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)' == 'AUTO_ENABLER'">
+		<Compile Include="Auto_Enabler\**\*.cs" />
 	</ItemGroup>
 
 	<!-- Always include shared code -->
@@ -558,14 +563,6 @@
 	</ItemGroup>
 
 	<!-- Exclude deprecated/WIP folder from all build actions -->
-	<ItemGroup>
-		<Compile Remove="deprecated\**\*.cs" />
-		<Compile Remove="WIP\**\*.cs" />
-		<None Include="deprecated\**\*" />
-		<None Include="WIP\**\*" />
-		<Content Remove="deprecated\**\*" />
-		<Content Remove="WIP\**\*" />
-	</ItemGroup>
 
 	<!-- regex-replace text in a file -->
 	<UsingTask TaskName="RegexReplace" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.Core">
@@ -587,7 +584,7 @@
 		</Task>
 	</UsingTask>
 
-	<!-- Replace the version in AssemblyInfo.cs before every build -->
+	<!-- Replace the version in AssemblyInfo.cs before every build --><!--
 	<Target Name="UpdateMelonInfoVersion" BeforeTargets="BeforeBuild">
 		<PropertyGroup>
 			<NewVersion>[assembly: MelonInfo(typeof(MyMod), "FallenStar's Improved Tooltips", "$(Version)", "FallenStar")]</NewVersion>
@@ -597,16 +594,27 @@
 
 		<RegexReplace InputFile="AssemblyInfo.cs" RegexPattern="\[assembly:\s*MelonInfo\(.*?\)\]" Replacement="$(NewVersion)" />
 
-	</Target>
+	</Target>-->
 
+	<PropertyGroup Condition="'$(Configuration)' == 'RELEASE'">
+		<AssemblyName>Fallen_LE_Mods</AssemblyName>
+		<DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
+	</PropertyGroup>
 
-
-	<PropertyGroup Condition="'$(Configuration)' == 'NEXUSRELEASE'">
+	<PropertyGroup Condition="'$(Configuration)' == 'IMPROVED_TOOLTIPS'">
 		<AssemblyName>Fallen_Improved_Tooltips</AssemblyName>
+		<ShouldZip>true</ShouldZip>
+		<DefineConstants>$(DefineConstants);IMPROVED_TOOLTIPS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'AUTO_ENABLER'">
+		<AssemblyName>Fallen_Auto_Enabler</AssemblyName>
+		<ShouldZip>true</ShouldZip>
+		<DefineConstants>$(DefineConstants);AUTO_ENABLER</DefineConstants>
 	</PropertyGroup>
 	
 	
-	<Target Name="ZipNexusRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'NEXUSRELEASE'">
+	<Target Name="ZipNexusRelease" AfterTargets="Build" Condition="'$(ShouldZip)' == 'true'">
 		<ItemGroup>
 			<FilesToZip Include="$(TargetDir)$(TargetFileName)" />
 			<FilesToZip Include="manifest.json" Condition="Exists('manifest.json')" />
