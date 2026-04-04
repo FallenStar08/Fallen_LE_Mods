@@ -16,6 +16,13 @@ namespace Fallen_LE_Mods.Shared
             Melon<MyMod>.Logger.Msg(msg);
         }
 
+        public static void LogDebug(string msg)
+        {
+#if Release
+            Melon<MyMod>.Logger.Msg(msg);
+#endif
+        }
+
         public static void MakeNotification(string msg)
         {
             Il2Cpp.Notifications.ShowGenericNotification(msg, 1, 1, 1);
