@@ -26,7 +26,7 @@ namespace Fallen_LE_Mods.Auto_Enabler {
 
                 //Toggle For Ring Visual
                 CreateToggle(socialList, "Show Proximity Rings",
-                             "Visual cyan circles around shrines and chests.",
+                             "Visual colored circles around shrines and chests.",
                              UniversalProximityManager._prefShowRings);
 
                 //Sub-Header for Filters
