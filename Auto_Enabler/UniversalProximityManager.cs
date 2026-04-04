@@ -113,6 +113,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             lr.useWorldSpace = false;
             lr.widthMultiplier = 0.12f;
             lr.positionCount = 32;
+            lr.castShadows = false;
             lr.loop = true;
 
             if (lr.material == null || lr.material.name.Contains("Default"))
@@ -121,7 +122,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             }
             lr.material.color = _prefColor.Value;
 
-            float deltaTheta = (2f * Mathf.PI) / 31;
+            float deltaTheta = (2f * Mathf.PI) / 32;
             for (int i = 0; i < 32; i++)
             {
                 float x = _currentRadius * Mathf.Cos(deltaTheta * i);
@@ -141,7 +142,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             {
                 GameObject ringGo = UnityEngine.Object.Instantiate(_ringTemplate, parent.transform);
                 ringGo.name = "ProximityRing";
-                ringGo.transform.localPosition = new Vector3(0, 0.2f, 0);
+                ringGo.transform.localPosition = new Vector3(0, 0.12f, 0);
                 ringGo.transform.localRotation = Quaternion.Euler(90, 0, 0);
                 ringGo.SetActive(true);
                 return ringGo;
