@@ -621,7 +621,12 @@
 
 		<PropertyGroup>
 			<InFileContext>@(BuildInfoLines)</InFileContext>
-			<ExtractedVersion>$([System.Text.RegularExpressions.Regex]::Match($(InFileContext), `public const string Version = \"([^\"]+)\"`).Groups[1].Value)</ExtractedVersion>
+
+			<ExtractedVersion>$([System.Text.RegularExpressions.Regex]::Match($(InFileContext), `$(Configuration).*?Version = \"([^\"]+)\"`).Groups[1].Value)</ExtractedVersion>
+		</PropertyGroup>
+
+		<PropertyGroup Condition="'$(ExtractedVersion)' == ''">
+			<ExtractedVersion>0.0.0-Error</ExtractedVersion>
 		</PropertyGroup>
 
 		<ItemGroup>
@@ -636,11 +641,9 @@
 		</PropertyGroup>
 
 		<MakeDir Directories="$(DownloadDir)" />
-
 		<PropertyGroup>
 			<FilesList>$([System.String]::Join(',', %(FilesToZip.FullPath)))</FilesList>
 		</PropertyGroup>
-
 		<Exec Command="powershell -NoLogo -NoProfile -Command &quot;Compress-Archive -Path $(FilesList) -DestinationPath '$(ZipOutputPath)' -Force&quot;" />
 	</Target>
 
