@@ -10,7 +10,7 @@
         public const string MainClass = "MyMod";
 #elif AUTO_ENABLER
         public const string Name = "FallenStar's Auto Enabler";
-        public const string Version = "1.0.0";
+        public const string Version = "1.0.1";
         public const string MainClass = "MyMod";
 #else
         public const string Name = "FallenStar's LE Mods";
