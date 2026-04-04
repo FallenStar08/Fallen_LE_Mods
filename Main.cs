@@ -5,7 +5,9 @@ using Fallen_LE_Mods.Shared;
 using HarmonyLib;
 using Il2Cpp;
 using MelonLoader;
+#if IMPROVED_TOOLTIPS
 using static Fallen_LE_Mods.Improved_Tooltips.GroundLabelManager;
+#endif
 
 
 
@@ -15,8 +17,10 @@ using static Fallen_LE_Mods.Improved_Tooltips.GroundLabelManager;
 
 namespace Fallen_LE_Mods
 {
+
     public class MyMod : MelonMod
     {
+#if IMPROVED_TOOLTIPS || RELEASE
         //Late Harmony patching for compatibility with other mods...
         public override void OnLateInitializeMelon()
         {
@@ -37,6 +41,7 @@ namespace Fallen_LE_Mods
 
 
         }
+#endif
 
 
 #if RELEASE
@@ -55,13 +60,16 @@ namespace Fallen_LE_Mods
             }
 
         }
+#endif
 
+#if AUTO_ENABLER || RELEASE
         public override void OnInitializeMelon()
         {
-            UniversalProximityManager.Initialize();
+            Fallen_LE_Mods.Auto_Enabler.UniversalProximityManager.Initialize();
         }
-
 #endif
+
+
     }
 
 }
