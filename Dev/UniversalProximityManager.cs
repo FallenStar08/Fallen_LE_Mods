@@ -31,7 +31,8 @@ namespace Fallen_LE_Mods.Dev
             { "Chest Placement Manager", "Chest" },
             { "Tomb Reward Chest", "Cemetery Chest" },
             { "Monolith Reward Chest", "Monolith Chest" },
-            { "Cache Click Listener", "Cache" }
+            { "Cache Click Listener", "Cache" },
+            { "void portal", "Void Portal" }
         };
 
         public static void Initialize()
