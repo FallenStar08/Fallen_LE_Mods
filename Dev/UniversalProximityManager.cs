@@ -15,6 +15,7 @@ namespace Fallen_LE_Mods.Dev
             public long PtrAddr;
             public Transform Trans;
             public WorldObjectClickListener Listener;
+            public GameObject? VisualRing;
             public string Name;
             public string Type;
         }
@@ -23,7 +24,7 @@ namespace Fallen_LE_Mods.Dev
         private static readonly HashSet<long> knownPtrs = new();
         private static Transform? playerTrans;
         private static bool running = false;
-        private const float SQUARED_DIST_LIMIT = 32f;
+        private const float SQUARED_DIST_LIMIT = 25f;
 
         private static readonly Dictionary<string, string> TargetKeywords = new()
         {
@@ -38,6 +39,7 @@ namespace Fallen_LE_Mods.Dev
         public static void Initialize()
         {
             if (running) return;
+            CreateTemplate();
             MelonCoroutines.Start(UpdateLoop());
             MelonCoroutines.Start(InitialStartupSweep());
             running = true;
@@ -114,16 +116,67 @@ namespace Fallen_LE_Mods.Dev
         private static void Register(WorldObjectClickListener listener, GameObject go, string type, long addr)
         {
             knownPtrs.Add(addr);
+
+            GameObject? ring = CreateProximityRing(go);
+
             activeObjects.Add(new TrackedObject
             {
                 PtrAddr = addr,
                 Trans = go.transform,
                 Listener = listener,
+                VisualRing = ring,
                 Name = go.name ?? "Unknown Object",
                 Type = type,
             });
 
             Log($"[Proximity Manager] +Tracked [{type}]: {go.name}");
+        }
+        private static GameObject? _ringTemplate;
+
+        //Template object to reduce GC and Draw Calls when creating proximity rings. The circle mesh is pre-built and shared
+        private static void CreateTemplate()
+        {
+            if (_ringTemplate != null) return;
+
+            _ringTemplate = new GameObject("ProximityRing_Template");
+            _ringTemplate.SetActive(false);
+            UnityEngine.Object.DontDestroyOnLoad(_ringTemplate);
+
+            LineRenderer lr = _ringTemplate.AddComponent<LineRenderer>();
+            lr.useWorldSpace = false;
+            lr.widthMultiplier = 0.12f;
+            lr.positionCount = 32;
+            lr.loop = true;
+
+            lr.material = new Material(Shader.Find("Sprites/Default"));
+            lr.material.color = new Color(0.1f, 0.8f, 1f, 0.5f);
+
+            float radius = Mathf.Sqrt(SQUARED_DIST_LIMIT);
+            float deltaTheta = (2f * Mathf.PI) / 31;
+            for (int i = 0; i < 32; i++)
+            {
+                float x = radius * Mathf.Cos(deltaTheta * i);
+                float z = radius * Mathf.Sin(deltaTheta * i);
+                lr.SetPosition(i, new Vector3(x, z, 0));
+            }
+        }
+
+        private static GameObject? CreateProximityRing(GameObject parent)
+        {
+            if (_ringTemplate == null) CreateTemplate();
+            if (_ringTemplate == null) return null;
+
+            try
+            {
+                GameObject ringGo = UnityEngine.Object.Instantiate(_ringTemplate, parent.transform);
+                ringGo.name = "ProximityRing";
+                ringGo.transform.localPosition = new Vector3(0, 0.2f, 0);
+                ringGo.transform.localRotation = Quaternion.Euler(90, 0, 0);
+                ringGo.SetActive(true);
+
+                return ringGo;
+            }
+            catch (Exception e) { Log($"[Proximity Manager] Failed to draw ring: {e.Message}"); return null; }
         }
 
         private static IEnumerator UpdateLoop()
@@ -148,20 +201,33 @@ namespace Fallen_LE_Mods.Dev
                         var obj = activeObjects[i];
 
 
-                        if (obj.PtrAddr == 0 || obj.Trans == null || obj.Trans.Pointer == IntPtr.Zero)
+                        if (obj.Listener == null || obj.Listener.Pointer == IntPtr.Zero)
                         {
-                            Log($"[Proximity Manager] -Unregistered (Destroyed): {obj.Name} [{obj.Type}]");
+                            Log($"[Proximity Manager] -Unregistered (Destroyed or GCed): {obj.Name} [{obj.Type}]");
+                            if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
                             activeObjects.RemoveAt(i);
                             continue;
                         }
 
                         try
                         {
-                            if (!obj.Trans.gameObject.activeInHierarchy)
+                            if (obj.Trans == null || obj.Trans.Pointer == IntPtr.Zero)
+                            {
+                                Log($"[Proximity Manager] -Unregistered (Unparented?): {obj.Name} [{obj.Type}]");
+                                if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
+                                activeObjects.RemoveAt(i);
+                                continue;
+                            }
+
+                            GameObject go = obj.Trans.gameObject;
+
+                            // remove from tracking so OnEnable can re-catch it later
+                            if (go == null || !go.activeInHierarchy)
                             {
                                 //allows the OnEnable patch to "see" it again if the game flickers it
                                 knownPtrs.Remove(obj.PtrAddr);
                                 Log($"[Proximity Manager] -Unregistered (Disabled): {obj.Name} [{obj.Type}]");
+                                if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
                                 activeObjects.RemoveAt(i);
                                 continue;
                             }
@@ -173,12 +239,14 @@ namespace Fallen_LE_Mods.Dev
                             {
                                 obj.Listener.ObjectClick(obj.Trans.gameObject, true);
                                 Log($"[Proximity Manager] [Auto-Activate] Success: {obj.Name} ({obj.Type})");
+                                if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
                                 activeObjects.RemoveAt(i);
                             }
                         }
                         catch (Exception e)
                         {
                             Log($"[Proximity Manager] -Unregistered (Error): {obj.Name} | {e.Message}");
+                            if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
                             activeObjects.RemoveAt(i);
                         }
                     }
