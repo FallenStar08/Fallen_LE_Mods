@@ -5,7 +5,7 @@ using Fallen_LE_Mods.Shared;
 using HarmonyLib;
 using Il2Cpp;
 using MelonLoader;
-#if IMPROVED_TOOLTIPS
+#if IMPROVED_TOOLTIPS || RELEASE
 using static Fallen_LE_Mods.Improved_Tooltips.GroundLabelManager;
 #endif
 
