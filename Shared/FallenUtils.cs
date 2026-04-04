@@ -18,7 +18,7 @@ namespace Fallen_LE_Mods.Shared
 
         public static void LogDebug(string msg)
         {
-#if Release
+#if RELEASE
             Melon<MyMod>.Logger.Msg(msg);
 #endif
         }
