@@ -221,10 +221,9 @@ namespace Fallen_LE_Mods.Dev
 
                             GameObject go = obj.Trans.gameObject;
 
-                            // remove from tracking so OnEnable can re-catch it later
+                            //remove from tracking so OnEnable can re-catch it later
                             if (go == null || !go.activeInHierarchy)
                             {
-                                //allows the OnEnable patch to "see" it again if the game flickers it
                                 knownPtrs.Remove(obj.PtrAddr);
                                 Log($"[Proximity Manager] -Unregistered (Disabled): {obj.Name} [{obj.Type}]");
                                 if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
