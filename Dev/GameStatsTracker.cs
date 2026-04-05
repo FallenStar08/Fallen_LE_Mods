@@ -10,89 +10,67 @@ namespace Fallen_LE_Mods.Dev
 
     public class GameStatsTracker : MelonMod
     {
-        public static bool IsPaused { get; private set; } = false;
-        public static float totalGold = 0f;
-        public static float goldPerHour = 0f;
-        public static float totalExp = 0f;
-        public static float expPerHour = 0f;
-        public static float totalRep = 0f;
-        public static float repPerHour = 0f;
-        public static float totalFavor = 0f;
-        public static float favorPerHour = 0f;
-        public static float memoryAmberPerHour = 0f;
-        public static float dps = 0f;
-        private static float startTime;
-        private static float pausedTime;
-        public static float expToNextLevel;
+        public static bool IsPaused { get; private set; }
+        public static float TotalGold { get; private set; }
+        public static float TotalExp { get; private set; }
+        public static float TotalRep { get; private set; }
+        public static float TotalFavor { get; private set; }
+        public static float ExpToNextLevel { get; private set; }
+        public static float Dps { get; private set; }
+
+        private static float _startTime;
+        private static float _pausedTime;
 
         public override void OnInitializeMelon()
         {
-            startTime = Time.time;
+            _startTime = Time.time;
         }
 
-        //public static float GetElapsedTime() 
-        //{
-        //    return (Time.time - startTime);
-        //}
+
 
         public static float GetElapsedTime()
         {
-            return IsPaused ? pausedTime - startTime : Time.time - startTime;
+            return IsPaused ? _pausedTime - _startTime : Time.time - _startTime;
         }
 
         public static void Pause()
         {
-            if (!IsPaused)
-            {
-                IsPaused = true;
-                pausedTime = Time.time;
-            }
+            if (IsPaused) return;
+            IsPaused = true;
+            _pausedTime = Time.time;
         }
 
         public static void Resume()
         {
-            if (IsPaused)
-            {
-                IsPaused = false;
-                startTime += Time.time - pausedTime; // Adjust startTime to compensate for paused time
-            }
+            if (!IsPaused) return;
+            IsPaused = false;
+            _startTime += Time.time - _pausedTime;
         }
 
         [HarmonyPatch(typeof(GoldTracker), "modifyGold")]
         public class GoldTrackerUpdater
         {
-            private static void Postfix(ref GoldTracker __instance, ref int changeValue)
+            private static void Postfix(int changeValue)
             {
-                //Melon<MyMod>.Logger.Msg("Gold Tracker updated");
-                if (changeValue >= 0)
-                {
-                    totalGold += changeValue;
-                }
-
+                if (changeValue >= 0) TotalGold += changeValue;
             }
         }
 
         [HarmonyPatch(typeof(ExperienceTracker), "GainExp")]
         public class ExpTrackerUpdater
         {
-            private static void Postfix(ref ExperienceTracker __instance, ref long characterExp, ref long abilityExp, ref long expForFavourGain)
+            private static void Postfix(long characterExp)
             {
-                //Melon<MyMod>.Logger.Msg("Exp Tracker updated");
-                if (characterExp >= 0)
-                {
-                    totalExp += characterExp;
-                }
-
+                if (characterExp >= 0) TotalExp += characterExp;
             }
         }
 
         [HarmonyPatch(typeof(ExperienceTracker), "SetExp")]
         public class ExpToNextLevelTracker
         {
-            private static void Postfix(ref ExperienceTracker __instance, ref long newExp)
+            private static void Postfix(ExperienceTracker __instance, long newExp)
             {
-                //Melon<MyMod>.Logger.Msg("Exp Tracker updated");
-                expToNextLevel = __instance.NextLevelExperience - newExp;
+                ExpToNextLevel = __instance.NextLevelExperience - newExp;
             }
         }
 
@@ -104,7 +82,7 @@ namespace Fallen_LE_Mods.Dev
                 //Melon<MyMod>.Logger.Msg($"Gained {value} reputation");
                 if (value >= 0)
                 {
-                    totalRep += value;
+                    TotalRep += value;
                 }
 
             }
@@ -119,7 +97,7 @@ namespace Fallen_LE_Mods.Dev
             {
                 if (gainedFavor >= 0)
                 {
-                    totalFavor += gainedFavor;
+                    TotalFavor += gainedFavor;
                 }
 
             }
@@ -128,73 +106,50 @@ namespace Fallen_LE_Mods.Dev
         [HarmonyPatch(typeof(RelayDamageEvents), "AddDamage")]
         public class DamageTracker
         {
-            private class DamageEntry
+            public static float TotalDamageDealt { get; private set; }
+            public static float AverageDps { get; private set; }
+            public static float MaxDps { get; private set; }
+            public static float MinDps { get; private set; } = float.MaxValue;
+
+            private static readonly Queue<DamageEntry> _damageQueue = new();
+            private const float TrackingWindow = 10f;
+
+            private static void Postfix(RelayDamageEvents __instance, float additionalDamage)
             {
-                public float damage;
-                public float time;
-                public DamageEntry(float damage, float time)
-                {
-                    this.damage = damage;
-                    this.time = time;
-                }
-            }
-
-            private static readonly Queue<DamageEntry> damageQueue = new();
-            private static float trackingWindow = 10f;
-            private static float lastCleanupTime = 0f;
-            private static float cleanupInterval = 1f;
-
-            public static float totalDamageDealt = 0f;
-            public static float averageDps = 0f;
-            public static float maxDps = 0f;
-            public static float minDps = float.MaxValue;
-
-            private static void Postfix(ref RelayDamageEvents __instance, ref float additionalDamage)
-            {
-                if (__instance.ToString().Contains("MainPlayer"))
-                {
-                    return;
-                }
+                if (__instance.ToString().Contains("MainPlayer")) return;
 
                 float now = Time.time;
 
-                damageQueue.Enqueue(new DamageEntry(additionalDamage, now));
-                totalDamageDealt += additionalDamage;
+                _damageQueue.Enqueue(new DamageEntry(additionalDamage, now));
+                TotalDamageDealt += additionalDamage;
 
-                while (damageQueue.Count > 0 && now - damageQueue.Peek().time > trackingWindow)
+                while (_damageQueue.Count > 0 && now - _damageQueue.Peek().time > TrackingWindow)
                 {
-                    damageQueue.Dequeue();
+                    _damageQueue.Dequeue();
                 }
 
-                float windowStart = now - trackingWindow;
                 float windowDamage = 0f;
-
-                foreach (var entry in damageQueue)
+                foreach (var entry in _damageQueue)
                 {
-                    if (entry.time >= windowStart)
-                        windowDamage += entry.damage;
+                    windowDamage += entry.damage;
                 }
 
-                float windowDuration = Mathf.Max(now - (damageQueue.Count > 0 ? damageQueue.Peek().time : now), 0.1f);
-                dps = windowDamage / windowDuration;
+                float windowDuration = Mathf.Max(now - (_damageQueue.Count > 0 ? _damageQueue.Peek().time : now), 0.1f);
 
-                averageDps = windowDamage / trackingWindow;
-                if (dps > maxDps) maxDps = dps;
-                if (dps < minDps) minDps = dps;
+                Dps = windowDamage / windowDuration;
 
-                if (now - lastCleanupTime > cleanupInterval)
-                {
-                    lastCleanupTime = now;
-                }
+                AverageDps = windowDamage / TrackingWindow;
+
+                MaxDps = Mathf.Max(MaxDps, Dps);
+                MinDps = Mathf.Min(MinDps, Dps);
             }
+
+            private record DamageEntry(float damage, float time);
         }
-
-
-
-
     }
-
 }
+
+
 
 
 #endif

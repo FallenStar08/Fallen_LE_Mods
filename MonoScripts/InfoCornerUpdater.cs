@@ -16,62 +16,75 @@ namespace Fallen_LE_Mods.MonoScripts
         public GameObject? backgroundObject;
         public float updateInterval = 1f;
 
-        private float timer = 0f;
-        private bool isVisible = true;
+        private float _timer;
+        private bool _isVisible = true;
         private const KeyCode ToggleKey = KeyCode.F1;
 
         public CornerUpdater(IntPtr ptr) : base(ptr) { }
 
         private void Update()
         {
-            if (Input.GetKeyDown(ToggleKey))
-            {
-                ToggleVisibility();
-            }
+            if (Input.GetKeyDown(ToggleKey)) ToggleVisibility();
 
-            if (!isVisible || textToUpdate == null) return;
+            if (!_isVisible || textToUpdate == null) return;
 
-            timer += Time.deltaTime;
-            if (timer >= updateInterval)
+            _timer += Time.deltaTime;
+            if (_timer >= updateInterval)
             {
-                timer = 0f;
+                _timer = 0f;
                 UpdateUIText();
             }
         }
 
         private void ToggleVisibility()
         {
-            isVisible = !isVisible;
+            _isVisible = !_isVisible;
 
             if (textToUpdate != null)
             {
-                textToUpdate.gameObject.SetActive(isVisible);
-                FallenUtils.MakeNotification($"Visibility toggled : {(isVisible ? "ON" : "OFF")}");
+                textToUpdate.gameObject.SetActive(_isVisible);
+                FallenUtils.MakeNotification($"Visibility toggled: {(_isVisible ? "ON" : "OFF")}");
             }
 
-
-            backgroundObject?.SetActive(isVisible);
+            backgroundObject?.SetActive(_isVisible);
         }
 
         private void UpdateUIText()
         {
-            StringBuilder infos = new();
+            if (textToUpdate == null) return;
 
-            int expPerHour = Mathf.Max(Mathf.RoundToInt(totalExp / GetElapsedTime() * 3600f), 0);
-            TimeSpan estimatedTimeToLevelUp = expPerHour > 0
-                ? TimeSpan.FromHours((double)expToNextLevel / expPerHour)
+            var infos = new StringBuilder();
+            float elapsed = GetElapsedTime();
+            const int pad = -9;
+
+            int GetRate(float total)
+            {
+                return elapsed > 0 ? Mathf.Max(Mathf.RoundToInt(total / elapsed * 3600f), 0) : 0;
+            }
+
+            void AddRow(string label, object value)
+            {
+                infos.AppendLine($"{label,pad}: {value}");
+            }
+
+            int expRate = GetRate(TotalExp);
+
+            var eta = expRate > 0
+                ? TimeSpan.FromHours(ExpToNextLevel / (double)expRate)
                 : TimeSpan.Zero;
 
-            infos.AppendLine($"{"Status",-8}: {(IsPaused ? "Paused" : "Active")}");
-            infos.AppendLine($"{"Gold/h",-8}: {Mathf.Max(Mathf.RoundToInt(totalGold / GetElapsedTime() * 3600f), 0)}");
-            infos.AppendLine($"{"Exp/h",-8}: {expPerHour}");
-            infos.AppendLine($"{"lvl↑ in",-8}: {estimatedTimeToLevelUp:hh\\:mm\\:ss}");
-            infos.AppendLine($"{"Rep/h",-8}: {Mathf.Max(Mathf.RoundToInt(totalRep / GetElapsedTime() * 3600f), 0)}");
-            infos.AppendLine($"{"Favor/h",-8}: {Mathf.Max(Mathf.RoundToInt(totalFavor / GetElapsedTime() * 3600f), 0)}");
-            infos.AppendLine($"{"DPS",-8}: {Mathf.RoundToInt(dps)}");
-            infos.AppendLine($"{"DPS(avg)",-8}: {Mathf.RoundToInt(DamageTracker.averageDps)}");
-            infos.AppendLine($"{"DPS(max)",-8}: {Mathf.RoundToInt(DamageTracker.maxDps)}");
-            infos.AppendLine($"{"DMG Ttl",-8}: {Mathf.RoundToInt(DamageTracker.totalDamageDealt)}");
+
+            AddRow("Status", IsPaused ? "Paused" : "Active");
+            AddRow("Gold/h", GetRate(TotalGold));
+            AddRow("Exp/h", expRate);
+            AddRow("lvl↑ in", $"{eta:hh\\:mm\\:ss}");
+            AddRow("Rep/h", GetRate(TotalRep));
+            AddRow("Favor/h", GetRate(TotalFavor));
+            AddRow("DPS", Mathf.RoundToInt(Dps));
+            AddRow("DPS(avg)", Mathf.RoundToInt(DamageTracker.AverageDps));
+            AddRow("DPS(max)", Mathf.RoundToInt(DamageTracker.MaxDps));
+            AddRow("DMG Ttl", Mathf.RoundToInt(DamageTracker.TotalDamageDealt));
+
             textToUpdate.text = infos.ToString();
             InfoCorner.ResizeBackgroundToText();
         }
