@@ -1,7 +1,9 @@
 ﻿using HarmonyLib;
 using Il2Cpp;
 using Il2CppItemFiltering;
+using Il2CppLE.Factions;
 using Il2CppLE.UI;
+using Il2CppSystem.Linq;
 
 namespace Fallen_LE_Mods.Shared
 {
@@ -21,6 +23,7 @@ namespace Fallen_LE_Mods.Shared
         public static GoldTracker? goldTracker;
         public static CharacterDataTracker? characterDataTracker;
         public static AncientBonesTracker? boneTracker;
+        public static Faction? faction;
         //public static CraftingManager? craftingManager;
         public static void Postfix(ref LoadingScreen __instance)
         {
@@ -36,8 +39,8 @@ namespace Fallen_LE_Mods.Shared
             goldTracker = PlayerFinder.getLocalGoldTracker();
             boneTracker = PlayerFinder.getAncientBonesTracker();
             player = PlayerFinder.getPlayerActor();
+            faction = player.factionInfo.GetFactions(true, true).First();
             //craftingManager = ItemContainersManager.Instance.craftingManager;
-
         }
     }
 }

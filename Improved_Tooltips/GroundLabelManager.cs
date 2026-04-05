@@ -53,14 +53,9 @@ namespace Fallen_LE_Mods.Improved_Tooltips
 
                     if (!isSet)
                     {
-                        if (itemData.weaversWill > 0)
-                        {
-                            statsDisplay = $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>";
-                        }
-                        else
-                        {
-                            statsDisplay = $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>";
-                        }
+                        statsDisplay = itemData.weaversWill > 0
+                            ? $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>"
+                            : $" <color=#FF0000>[LP:{itemData.legendaryPotential}]</color>";
                     }
                 }
 

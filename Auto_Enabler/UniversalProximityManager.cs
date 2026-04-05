@@ -11,10 +11,10 @@ namespace Fallen_LE_Mods.Auto_Enabler
     public static class UniversalProximityManager
     {
 
-        public static MelonPreferences_Category _category;
-        public static MelonPreferences_Entry<bool> _prefShowRings;
-        public static MelonPreferences_Entry<float> _prefDistance;
-        public static MelonPreferences_Entry<Color> _prefColor;
+        public static MelonPreferences_Category? _category;
+        public static MelonPreferences_Entry<bool>? _prefShowRings;
+        public static MelonPreferences_Entry<float>? _prefDistance;
+        public static MelonPreferences_Entry<Color>? _prefColor;
 
         public static readonly Dictionary<string, MelonPreferences_Entry<bool>> TypeToggles = new();
 
@@ -122,7 +122,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             }
             lr.material.color = _prefColor.Value;
 
-            float deltaTheta = (2f * Mathf.PI) / 32;
+            float deltaTheta = 2f * Mathf.PI / 32;
             for (int i = 0; i < 32; i++)
             {
                 float x = _currentRadius * Mathf.Cos(deltaTheta * i);
@@ -296,7 +296,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
                             }
 
                             Vector3 diff = pPos - obj.Trans.position;
-                            float sqrMag = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+                            float sqrMag = (diff.x * diff.x) + (diff.y * diff.y) + (diff.z * diff.z);
 
                             if (sqrMag <= limit)
                             {

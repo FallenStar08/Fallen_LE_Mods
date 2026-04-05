@@ -6,7 +6,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using static Fallen_LE_Mods.Shared.FallenUtils;
 
-namespace Fallen_LE_Mods.Auto_Enabler { 
+namespace Fallen_LE_Mods.Auto_Enabler
+{
     [HarmonyPatch(typeof(SettingsUIManager), nameof(SettingsUIManager.EnableSocialTab))]
     public class SettingsPanel_SocialTab_Patch
     {
@@ -93,7 +94,8 @@ namespace Fallen_LE_Mods.Auto_Enabler {
                 toggleComp.onValueChanged.RemoveAllListeners();
                 toggleComp.isOn = pref.Value;
 
-                toggleComp.onValueChanged.AddListener(new Action<bool>((val) => {
+                toggleComp.onValueChanged.AddListener(new Action<bool>((val) =>
+                {
                     pref.Value = toggleComp.isOn;
                     UniversalProximityManager._category.SaveToFile();
                     Log($"[UI] {pref.Identifier} set to: {pref.Value}");

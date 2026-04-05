@@ -14,7 +14,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
         private static void HandleTooltipUpdate(ItemDataUnpacked item)
         {
             if (item == null) return;
-            if (item.LoreText == null) item.LoreText = "";
+            item.LoreText ??= "";
 
             if (item.LoreText.Contains(LoreMarker))
             {
@@ -53,14 +53,11 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                         string statColor = isWW ? "#5D3FD3" : "#FF0000";
                         string statName = isWW ? "WW" : "LP";
 
-                        string comparison;
-                        if (stashVal > currentVal)
-                            comparison = $"<color=#FF0000>↓</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
-                        else if (stashVal < currentVal)
-                            comparison = $"<color=#00FF00>↑</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
-                        else
-                            comparison = $"<color=#0000FF>=</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
-
+                        string comparison = stashVal > currentVal
+                            ? $"<color=#FF0000>↓</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)"
+                            : stashVal < currentVal
+                            ? $"<color=#00FF00>↑</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)"
+                            : $"<color=#0000FF>=</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
                         additions += $"\n\n<color=#00FF00>[OWNED]</color> - <color={statColor}>[{statName}:{currentVal}]</color> {comparison}";
                     }
                 }

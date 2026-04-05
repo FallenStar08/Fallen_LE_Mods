@@ -141,7 +141,7 @@ namespace Fallen_LE_Mods.Shared
 
     public static class GameObjectExtensions
     {
-        public static GameObject GetChildByName(this GameObject parent, string name)
+        public static GameObject? GetChildByName(this GameObject parent, string name)
         {
             if (parent == null) return null;
             Transform t = parent.transform.Find(name);
@@ -167,8 +167,7 @@ namespace Fallen_LE_Mods.Shared
         public static bool IsGameScene()
         {
             Scene scene = SceneManager.GetActiveScene();
-            if (!scene.IsValid() || System.Array.IndexOf(SceneMenuNames, scene.name) >= 0) return false;
-            return true;
+            return scene.IsValid() && System.Array.IndexOf(SceneMenuNames, scene.name) < 0;
         }
 
     }

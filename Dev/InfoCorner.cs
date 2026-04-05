@@ -50,11 +50,15 @@ namespace Fallen_LE_Mods.Dev
             {
                 Melon<MyMod>.Logger.Msg("Version object found!");
                 // Make our bg & txt holding compo
-                GameObject textObject = new GameObject("Fallen_CornerInfoText");
-                textObject.layer = LayerMask.NameToLayer("UI");
+                GameObject textObject = new("Fallen_CornerInfoText")
+                {
+                    layer = LayerMask.NameToLayer("UI")
+                };
 
-                rectangleObject = new GameObject("Fallen_BlackBackground");
-                rectangleObject.layer = LayerMask.NameToLayer("UI");
+                rectangleObject = new GameObject("Fallen_BlackBackground")
+                {
+                    layer = LayerMask.NameToLayer("UI")
+                };
 
                 Image image = rectangleObject.AddComponent<Image>();
 
@@ -77,7 +81,7 @@ namespace Fallen_LE_Mods.Dev
                 var textRectTransform = textObject.GetComponent<RectTransform>();
                 FallenUtils.SetDefaultRectTransformProperties(textRectTransform);
                 textObject.transform.localPosition = new Vector3(10, -30, 0);
-                GameObject updaterObj = new GameObject("Fallen_CornerUpdater");
+                GameObject updaterObj = new("Fallen_CornerUpdater");
                 updaterObj.transform.SetParent(canvas.transform);
                 var updater = updaterObj.AddComponent<CornerUpdater>();
                 updater.textToUpdate = text;

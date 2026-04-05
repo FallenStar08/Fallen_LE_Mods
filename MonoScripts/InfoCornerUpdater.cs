@@ -50,8 +50,7 @@ namespace Fallen_LE_Mods.MonoScripts
             }
 
 
-            if (backgroundObject != null)
-                backgroundObject.SetActive(isVisible);
+            backgroundObject?.SetActive(isVisible);
         }
 
         private void UpdateUIText()

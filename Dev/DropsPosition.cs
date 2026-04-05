@@ -3,7 +3,6 @@ using Fallen_LE_Mods.Shared;
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppLE.Factions;
-using Il2CppLE.Gameplay.PrimalHunt;
 using MelonLoader;
 using UnityEngine;
 namespace Fallen_LE_Mods.Dev
@@ -93,6 +92,23 @@ namespace Fallen_LE_Mods.Dev
             if (GameReferencesCache.boneTracker == null) return true;
             GameReferencesCache.boneTracker.modifyAncientBones(amount);
             playDropSound = false;
+            randomiseLocation = false;
+            return false;
+        }
+
+    }
+
+    [HarmonyPatch(typeof(GroundItemManager), "dropFavorTomeForPlayer")]
+    public class dropFavorTomeForPlayerHandler : MelonMod
+    {
+        public static bool Prefix(GroundItemManager __instance, Actor player, int favor, ref Vector3 location, ref bool playDropSound, ref bool randomiseLocation)
+        {
+            if (GameReferencesCache.player == null || GameReferencesCache.faction == null) return true;
+            Vector3 playerPosition = GameReferencesCache.player.position();
+            location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
+            GameReferencesCache.faction.GainFavor(favor);
+            playDropSound = false;
+            randomiseLocation = false;
             return false;
         }
 
