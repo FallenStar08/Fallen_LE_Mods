@@ -28,6 +28,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             public GameObject? VisualRing;
             public string Name;
             public string Type;
+            public int NullStrikes;
         }
 
         private static readonly List<TrackedObject> activeObjects = new();
@@ -235,6 +236,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
                 VisualRing = ring,
                 Name = go.name ?? "Unknown Object",
                 Type = type,
+                NullStrikes = 0
             });
 
             LogDebug($"[Proximity Manager] +Tracked [{type}]: {go.name}");
@@ -246,8 +248,6 @@ namespace Fallen_LE_Mods.Auto_Enabler
             var wait = new WaitForSeconds(0.4f);
             while (true)
             {
-                knownPtrs.RemoveWhere(p => p == 0);
-
                 if (playerTrans == null || playerTrans.Pointer == IntPtr.Zero)
                 {
                     if (GameReferencesCache.player != null)
@@ -257,65 +257,84 @@ namespace Fallen_LE_Mods.Auto_Enabler
                 if (playerTrans != null && activeObjects.Count > 0)
                 {
                     Vector3 pPos = playerTrans.position;
-
                     float limit = _currentSqrDist;
 
                     for (int i = activeObjects.Count - 1; i >= 0; i--)
                     {
                         var obj = activeObjects[i];
 
+                        if (IsObjectInvalid(ref obj, i)) continue;
 
-                        if (obj.Listener == null || obj.Listener.Pointer == IntPtr.Zero)
-                        {
-                            LogDebug($"[Proximity Manager] -Unregistered (Destroyed or GCed): {obj.Name} [{obj.Type}]");
-                            if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
-                            activeObjects.RemoveAt(i);
-                            continue;
-                        }
-
-                        try
-                        {
-                            if (obj.Trans == null || obj.Trans.Pointer == IntPtr.Zero)
-                            {
-                                LogDebug($"[Proximity Manager] -Unregistered (Unparented?): {obj.Name} [{obj.Type}]");
-                                if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
-                                activeObjects.RemoveAt(i);
-                                continue;
-                            }
-
-                            GameObject go = obj.Trans.gameObject;
-
-                            //remove from tracking so OnEnable can re-catch it later
-                            if (go == null || !go.activeInHierarchy)
-                            {
-                                knownPtrs.Remove(obj.PtrAddr);
-                                LogDebug($"[Proximity Manager] -Unregistered (Disabled): {obj.Name} [{obj.Type}]");
-                                if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
-                                activeObjects.RemoveAt(i);
-                                continue;
-                            }
-
-                            Vector3 diff = pPos - obj.Trans.position;
-                            float sqrMag = (diff.x * diff.x) + (diff.y * diff.y) + (diff.z * diff.z);
-
-                            if (sqrMag <= limit)
-                            {
-                                obj.Listener.ObjectClick(obj.Trans.gameObject, true);
-                                LogDebug($"[Proximity Manager] [Auto-Activate] Success: {obj.Name} ({obj.Type})");
-                                if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
-                                activeObjects.RemoveAt(i);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            LogDebug($"[Proximity Manager] -Unregistered (Error): {obj.Name} | {e.Message}");
-                            if (obj.VisualRing != null) GameObject.Destroy(obj.VisualRing);
-                            activeObjects.RemoveAt(i);
-                        }
+                        if (HandleProximity(obj, pPos, limit, i)) continue;
                     }
                 }
                 yield return wait;
             }
+        }
+
+        private static bool IsObjectInvalid(ref TrackedObject obj, int index)
+        {
+            if (obj.Listener == null || obj.Listener.Pointer == IntPtr.Zero || obj.Trans == null || obj.Trans.Pointer == IntPtr.Zero)
+            {
+                obj.NullStrikes++;
+                activeObjects[index] = obj;
+
+                if (obj.NullStrikes >= 3)
+                {
+                    LogDebug($"[Proximity Manager] -Unregistered (Confirmed Dead): {obj.Name}");
+                    CleanupObject(index);
+                    return true;
+                }
+                return true;
+            }
+
+            if (obj.NullStrikes > 0)
+            {
+                obj.NullStrikes = 0;
+                activeObjects[index] = obj;
+            }
+
+            if (!obj.Trans.gameObject.activeInHierarchy)
+            {
+                LogDebug($"[Proximity Manager] -Unregistered (Inactive): {obj.Name}");
+                CleanupObject(index);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool HandleProximity(TrackedObject obj, Vector3 pPos, float limit, int index)
+        {
+            try
+            {
+                Vector3 diff = pPos - obj.Trans.position;
+                float sqrMag = (diff.x * diff.x) + (diff.y * diff.y) + (diff.z * diff.z);
+
+                if (sqrMag <= limit)
+                {
+                    obj.Listener.ObjectClick(obj.Trans.gameObject, true);
+                    LogDebug($"[Proximity Manager] [Auto-Activate] Success: {obj.Name}");
+                    CleanupObject(index);
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                LogDebug($"[Proximity Manager] Error processing {obj.Name}: {e.Message}");
+                CleanupObject(index);
+                return true;
+            }
+            return false;
+        }
+
+        private static void CleanupObject(int index)
+        {
+            var obj = activeObjects[index];
+            if (obj.VisualRing != null) UnityEngine.Object.Destroy(obj.VisualRing);
+
+            knownPtrs.Remove(obj.PtrAddr);
+            activeObjects.RemoveAt(index);
         }
     }
 }
