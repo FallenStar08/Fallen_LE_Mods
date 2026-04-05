@@ -79,7 +79,6 @@ namespace Fallen_LE_Mods.Dev
         {
             private static void Postfix(ref Faction __instance, ref int value)
             {
-                //Melon<MyMod>.Logger.Msg($"Gained {value} reputation");
                 if (value >= 0)
                 {
                     TotalRep += value;
