@@ -245,21 +245,29 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static IEnumerator UpdateLoop()
         {
-            var wait = new WaitForSeconds(0.4f);
+            var wait = new WaitForSeconds(0.3f);
             while (true)
             {
+                //Nothing to do :(
+                int count = activeObjects.Count;
+                if (count == 0)
+                {
+                    yield return wait;
+                    continue;
+                }
+
                 if (playerTrans == null || playerTrans.Pointer == IntPtr.Zero)
                 {
                     if (GameReferencesCache.player != null)
                         playerTrans = GameReferencesCache.player.gameObject.transform;
                 }
 
-                if (playerTrans != null && activeObjects.Count > 0)
+                if (playerTrans != null)
                 {
                     Vector3 pPos = playerTrans.position;
                     float limit = _currentSqrDist;
 
-                    for (int i = activeObjects.Count - 1; i >= 0; i--)
+                    for (int i = count - 1; i >= 0; i--)
                     {
                         var obj = activeObjects[i];
 
