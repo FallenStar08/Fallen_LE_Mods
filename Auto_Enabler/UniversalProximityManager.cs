@@ -306,25 +306,21 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static bool HandleProximity(TrackedObject obj, Vector3 pPos, float limit, int index)
         {
-            try
-            {
-                Vector3 diff = pPos - obj.Trans.position;
-                float sqrMag = (diff.x * diff.x) + (diff.y * diff.y) + (diff.z * diff.z);
+            Vector3 oPos = obj.Trans.position;
 
-                if (sqrMag <= limit)
-                {
-                    obj.Listener.ObjectClick(obj.Trans.gameObject, true);
-                    LogDebug($"[Proximity Manager] [Auto-Activate] Success: {obj.Name}");
-                    CleanupObject(index);
-                    return true;
-                }
-            }
-            catch (Exception e)
+            float dx = pPos.x - oPos.x;
+            float dz = pPos.z - oPos.z;
+
+            float sqrMag2D = (dx * dx) + (dz * dz);
+
+            if (sqrMag2D <= limit)
             {
-                LogDebug($"[Proximity Manager] Error processing {obj.Name}: {e.Message}");
+                obj.Listener.ObjectClick(obj.Trans.gameObject, true);
+                LogDebug($"[Proximity Manager] [Auto-Activate] Success: {obj.Name}");
                 CleanupObject(index);
                 return true;
             }
+
             return false;
         }
 
