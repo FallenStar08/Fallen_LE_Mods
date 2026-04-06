@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using HarmonyLib;
 using Il2Cpp;
 using Il2CppRewired.Utils;
 using Il2CppTMPro;
@@ -9,9 +10,18 @@ using static Fallen_LE_Mods.Shared.FallenUtils;
 
 namespace Fallen_LE_Mods.Shared
 {
+
     public static class FallenUI
     {
         private static object? _saveCoroutine;
+
+        public static readonly List<Action<Transform>> OnMenuBuild = new();
+
+        public static void RegisterMenu(Action<Transform> drawAction)
+        {
+            if (!OnMenuBuild.Contains(drawAction))
+                OnMenuBuild.Add(drawAction);
+        }
 
         public static void DebouncedSave(MelonPreferences_Category category, float delay = 0.5f)
         {
@@ -30,10 +40,44 @@ namespace Fallen_LE_Mods.Shared
             if (category != null)
             {
                 category.SaveToFile();
-                LogDebug("[Config] Debounced Save Executed.");
+                LogDebug("[CONFIG] Debounced Save Executed.");
             }
 
             _saveCoroutine = null;
+        }
+
+        [HarmonyPatch(typeof(SettingsUIManager), nameof(SettingsUIManager.EnableSocialTab))]
+        public class SettingsPanel_SocialTab_Patch
+        {
+            public static void Postfix(SettingsUIManager __instance)
+            {
+                try
+                {
+                    Transform social = __instance.transform.Find("Content/Social");
+                    Transform? viewport = social?.Find("Viewport");
+                    Transform? socialContainer = viewport?.Find("Social-container");
+
+                    if (social.IsNullOrDestroyed() || socialContainer.IsNullOrDestroyed()) return;
+
+                    //Setup Scrolling
+                    var scrollRect = social.GetComponent<ScrollRect>() ?? social.gameObject.AddComponent<ScrollRect>();
+                    scrollRect.scrollSensitivity = 20f;
+                    scrollRect.horizontal = false;
+                    scrollRect.content = socialContainer.GetComponent<RectTransform>();
+
+                    //Init tag
+                    if (socialContainer.Find("FallenMods_Initialized") != null) return;
+                    new GameObject("FallenMods_Initialized").transform.SetParent(socialContainer);
+
+                    //trigger all our registered draw calls for this menu
+                    foreach (var drawCall in FallenUI.OnMenuBuild)
+                    {
+                        try { drawCall.Invoke(socialContainer); }
+                        catch (Exception e) { Log($"[UI] Module draw failed: {e.Message}"); }
+                    }
+                }
+                catch (Exception e) { Log($"[UI] Master Error: {e.Message}"); }
+            }
         }
         public static GameObject? CreateHeader(Transform parent, string title, string objectName)
         {
@@ -88,7 +132,7 @@ namespace Fallen_LE_Mods.Shared
                 {
                     pref.Value = toggleComp.isOn;
                     pref.Category.SaveToFile();
-                    Log($"[Config] {pref.Identifier} set to: {pref.Value}");
+                    LogDebug($"[UI] {pref.Identifier} set to: {pref.Value}");
                 }));
             }
             return toggleGo;
@@ -97,7 +141,7 @@ namespace Fallen_LE_Mods.Shared
         private static IEnumerator DelaySetText(TMP_InputField field, string val)
         {
             yield return new WaitForEndOfFrame();
-            LogDebug($"[UI Hijack] Delayed text set for {field.gameObject.name} to {val}");
+            LogDebug($"[UI] Delayed text set for {field.gameObject.name} to {val}");
             field?.SetTextWithoutNotify(val);
         }
 
@@ -108,7 +152,7 @@ namespace Fallen_LE_Mods.Shared
             GameObject soundContainer = GameObject.Find("GUI/Panel System/Panel Stacks/Left Panel Stack/Settings Panel(Clone)/Content/Sound/Viewport/Sound-container");
             if (soundContainer.IsNullOrDestroyed())
             {
-                LogDebug("[UI Hijack] Sound-container not found");
+                Log("[UI] Sound-container not found");
                 return null;
 
             }
@@ -116,7 +160,7 @@ namespace Fallen_LE_Mods.Shared
             Transform original = soundContainer.transform.Find("Slider - Master");
             if (original.IsNullOrDestroyed())
             {
-                LogDebug("[UI Hijack] Original Slider not found");
+                Log("[UI] Original Slider not found");
                 return null;
             }
 
@@ -178,7 +222,7 @@ namespace Fallen_LE_Mods.Shared
                     {
                         pref.Value = val;
                         DebouncedSave(pref.Category);
-                        LogDebug($"[Config] (field) Distance value changed to {val}");
+                        LogDebug($"[UI] (field) Distance value changed to {val}");
                     }
 
                     inputField.SetTextWithoutNotify(val.ToString("F1", System.Globalization.CultureInfo.InvariantCulture));
@@ -208,7 +252,7 @@ namespace Fallen_LE_Mods.Shared
                     {
                         pref.Value = rounded;
                         DebouncedSave(pref.Category);
-                        LogDebug($"[CONFIG] (slider) Distance value changed to {rounded}");
+                        LogDebug($"[UI] (slider) Distance value changed to {rounded}");
                     }
 
                 }));

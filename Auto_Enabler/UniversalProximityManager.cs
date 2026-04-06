@@ -76,7 +76,22 @@ namespace Fallen_LE_Mods.Auto_Enabler
             MelonCoroutines.Start(UpdateLoop());
             MelonCoroutines.Start(InitialStartupSweep());
             running = true;
+            FallenUI.RegisterMenu(DrawProximitySettings);
             Log("[Proximity Manager] Initialized and Prefs Saved!");
+        }
+
+        private static void DrawProximitySettings(Transform container)
+        {
+            FallenUI.CreateHeader(container, "Fallen's Proximity Manager", "ProxHeader");
+            FallenUI.CreateToggle(container, "Show Proximity Rings", "Visual colored circles around shrines and chests.", _prefShowRings);
+            FallenUI.CreateSlider(container, "Activation Radius", "Distance at which proximity activation occurs.", 1f, 10f, _prefDistance);
+
+            // Sub-Filters
+            FallenUI.CreateHeader(container, "Auto-Activation Filters", "ProxFilters");
+            foreach (var entry in TypeToggles)
+            {
+                FallenUI.CreateToggle(container, $"Auto-Activate {entry.Key}s", $"Enable or disable proximity activation for {entry.Key} objects.", entry.Value);
+            }
         }
 
         private static void UpdateSettings()
