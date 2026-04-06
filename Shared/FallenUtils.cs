@@ -1,4 +1,5 @@
-﻿using Il2Cpp;
+﻿using System.Diagnostics;
+using Il2Cpp;
 using Il2CppItemFiltering;
 using MelonLoader;
 using UnityEngine;
@@ -16,11 +17,10 @@ namespace Fallen_LE_Mods.Shared
             Melon<MyMod>.Logger.Msg(msg);
         }
 
+        [Conditional("RELEASE")]
         public static void LogDebug(string msg)
         {
-#if RELEASE
             Melon<MyMod>.Logger.Msg(msg);
-#endif
         }
 
         public static void MakeNotification(string msg)
