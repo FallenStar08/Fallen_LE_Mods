@@ -102,6 +102,23 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
             //Re-draw template mesh if distance changed
             if (_ringTemplate != null) CreateTemplate(true);
+
+            //Refresh all currently visible rings
+            foreach (var obj in activeObjects)
+            {
+                if (obj.VisualRing == null) continue;
+
+                var lr = obj.VisualRing.GetComponent<LineRenderer>();
+                if (lr == null) continue;
+
+                float deltaTheta = 2f * Mathf.PI / 32;
+                for (int i = 0; i < 32; i++)
+                {
+                    float x = _currentRadius * Mathf.Cos(deltaTheta * i);
+                    float z = _currentRadius * Mathf.Sin(deltaTheta * i);
+                    lr.SetPosition(i, new Vector3(x, z, 0));
+                }
+            }
         }
 
         private static void UpdateTemplateVisuals()

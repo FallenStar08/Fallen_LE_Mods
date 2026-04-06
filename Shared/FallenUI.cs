@@ -201,7 +201,7 @@ namespace Fallen_LE_Mods.Shared
             inputField.keyboardType = TouchScreenKeyboardType.DecimalPad;
 
 
-            // cringe Il2cpp slider subcomponent we may need
+            //cringe Il2cpp slider subcomponent we may need
             var numberFloatInput = sliderGo.GetComponentInChildren<NumberFloatInput>();
 
             string cleanStartValue = pref.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
