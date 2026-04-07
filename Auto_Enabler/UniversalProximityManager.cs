@@ -177,8 +177,21 @@ namespace Fallen_LE_Mods.Auto_Enabler
             {
                 GameObject ringGo = UnityEngine.Object.Instantiate(_ringTemplate, parent.transform);
                 ringGo.name = "ProximityRing";
-                ringGo.transform.localPosition = new Vector3(0, 0.12f, 0);
-                ringGo.transform.localRotation = Quaternion.Euler(90, 0, 0);
+
+                float yOffset = 0.12f;
+                Vector3 spawnPos = parent.transform.position + (Vector3.up * 1.0f); // Start 1m above
+
+                if (Physics.Raycast(spawnPos, Vector3.down, out RaycastHit hit, 3.0f))
+                {
+                    ringGo.transform.position = hit.point + (Vector3.up * yOffset);
+                }
+                else
+                {
+                    ringGo.transform.localPosition = new Vector3(0, yOffset, 0);
+                }
+
+                //Keep flat
+                ringGo.transform.rotation = Quaternion.Euler(90, 0, 0);
                 ringGo.SetActive(true);
                 return ringGo;
             }
