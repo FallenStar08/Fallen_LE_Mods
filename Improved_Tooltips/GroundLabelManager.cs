@@ -7,11 +7,46 @@ using MelonLoader;
 
 namespace Fallen_LE_Mods.Improved_Tooltips
 {
-    public class GroundLabelManager : MelonMod
+    public class GroundLabelManager
     {
         private static bool? _isKgImprovementsLoaded;
         public static bool IsKgImprovementsLoaded => _isKgImprovementsLoaded ??=
             MelonMod.RegisteredMelons.Any(m => m.Info.Name == "kg_LastEpoch_Improvements");
+        public static MelonPreferences_Category? _category;
+        public static MelonPreferences_Entry<bool>? _prefShowFullItemName;
+        public static MelonPreferences_Entry<bool>? _prefShowLPOnGroundLabels;
+        public static MelonPreferences_Entry<bool>? _prefShowLPComparison;
+        private static bool running = false;
+        public static void Initialize()
+        {
+            if (running) return;
+            _category = MelonPreferences.CreateCategory("ImprovedTooltips", "Improved Tooltips");
+            _category.SetFilePath("UserData/FallenImprovedTooltips.cfg");
+
+            string description1 = IsKgImprovementsLoaded
+                ? "Show Item's LP on Ground Labels (Disabled due to kg Improvements providing this info)"
+                : "Show Item's LP on Ground Labels";
+
+            string description2 = "Show LP Comparison to Items in Stash on Ground Labels";
+
+            string description3 = IsKgImprovementsLoaded
+                ? "Show Full Item Name on their ground label (Disabled due to kg Improvements providing this info)"
+                : "Show Full Item Name on their ground label";
+
+            _prefShowLPOnGroundLabels = _category.CreateEntry("ShowLPOnGroundLabels", true, description1);
+            _prefShowLPComparison = _category.CreateEntry("ShowLPComparison", true, description2);
+            _prefShowFullItemName = _category.CreateEntry("ShowFullItemName", true, description3);
+
+            FallenUI.RegisterMenu((container) =>
+            {
+                var header = FallenUI.CreateHeader(container, "Ground Labels", "GroundLabels");
+                if (header == null) return;
+                FallenUI.CreateToggle(container, "Show LP On Ground Labels", description1, _prefShowLPOnGroundLabels);
+                FallenUI.CreateToggle(container, "Show LP Comparison", description2, _prefShowLPComparison);
+                FallenUI.CreateToggle(container, "Show Full Item Name", description3, _prefShowFullItemName);
+            });
+            running = true;
+        }
 
         public static class GroundLabelPatch
         {
@@ -49,9 +84,9 @@ namespace Fallen_LE_Mods.Improved_Tooltips
 
                 if (!IsKgImprovementsLoaded)
                 {
-                    baseName = itemData.FullName;
+                    baseName = _prefShowFullItemName.Value ? itemData.FullName : currentText;
 
-                    if (!isSet)
+                    if (!isSet & _prefShowLPOnGroundLabels.Value == true)
                     {
                         statsDisplay = itemData.weaversWill > 0
                             ? $" <color=#5D3FD3>[WW:{itemData.weaversWill}]</color>"
@@ -67,7 +102,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                     {
                         statusSuffix = " <color=#00FF00>[OWNED]</color>";
                     }
-                    else
+                    else if (_prefShowLPComparison.Value == true)
                     {
                         int currentStat = (itemData.weaversWill > 0) ? itemData.weaversWill : itemData.legendaryPotential;
                         int stashStat = (itemData.weaversWill > 0) ? matchedInStash.weaversWill : matchedInStash.legendaryPotential;
