@@ -98,28 +98,13 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static void UpdateSettings()
         {
-            float dist = _prefDistance.Value;
-            _currentSqrDist = dist * dist;
-            _currentRadius = dist;
+            _currentRadius = _prefDistance!.Value;
+            _currentSqrDist = _currentRadius * _currentRadius;
 
-            //Re-draw template mesh if distance changed
-            if (_ringTemplate != null) CreateTemplate(true);
-
-            //Refresh all currently visible rings
             foreach (var obj in activeObjects)
             {
                 if (obj.VisualRing == null) continue;
-
-                var lr = obj.VisualRing.GetComponent<LineRenderer>();
-                if (lr == null) continue;
-
-                float deltaTheta = 2f * Mathf.PI / 32;
-                for (int i = 0; i < 32; i++)
-                {
-                    float x = _currentRadius * Mathf.Cos(deltaTheta * i);
-                    float z = _currentRadius * Mathf.Sin(deltaTheta * i);
-                    lr.SetPosition(i, new Vector3(x, z, 0));
-                }
+                ApplyScaleToRing(obj.VisualRing, obj.Trans);
             }
         }
 
@@ -132,19 +117,15 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static GameObject? _ringTemplate;
 
-        private static void CreateTemplate(bool forceRefresh = false)
+        private static void CreateTemplate()
         {
-            if (_ringTemplate != null && !forceRefresh) return;
+            if (_ringTemplate != null) return;
 
-            if (_ringTemplate == null)
-            {
-                _ringTemplate = new GameObject("ProximityRing_Template");
-                _ringTemplate.SetActive(false);
-                UnityEngine.Object.DontDestroyOnLoad(_ringTemplate);
-                _ringTemplate.AddComponent<LineRenderer>();
-            }
+            _ringTemplate = new GameObject("ProximityRing_Template");
+            _ringTemplate.SetActive(false);
+            UnityEngine.Object.DontDestroyOnLoad(_ringTemplate);
 
-            LineRenderer lr = _ringTemplate.GetComponent<LineRenderer>();
+            LineRenderer lr = _ringTemplate.AddComponent<LineRenderer>();
             lr.useWorldSpace = false;
             lr.widthMultiplier = 0.12f;
             lr.positionCount = 32;
@@ -154,16 +135,15 @@ namespace Fallen_LE_Mods.Auto_Enabler
             if (lr.material == null || lr.material.shader.name != "UI/Default")
             {
                 Shader uiShader = Shader.Find("UI/Default");
-
                 lr.material = new Material(uiShader);
             }
-            lr.material.color = _prefColor.Value;
+            lr.material.color = _prefColor!.Value;
 
             float deltaTheta = 2f * Mathf.PI / 32;
             for (int i = 0; i < 32; i++)
             {
-                float x = _currentRadius * Mathf.Cos(deltaTheta * i);
-                float z = _currentRadius * Mathf.Sin(deltaTheta * i);
+                float x = Mathf.Cos(deltaTheta * i);
+                float z = Mathf.Sin(deltaTheta * i);
                 lr.SetPosition(i, new Vector3(x, z, 0));
             }
         }
@@ -192,10 +172,31 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
                 //Keep flat
                 ringGo.transform.rotation = Quaternion.Euler(90, 0, 0);
+                ApplyScaleToRing(ringGo, parent.transform);
                 ringGo.SetActive(true);
                 return ringGo;
             }
             catch { return null; }
+        }
+
+        private static void ApplyScaleToRing(GameObject ring, Transform parentTrans)
+        {
+            if (ring == null || parentTrans == null) return;
+            var lr = ring.GetComponent<LineRenderer>();
+            if (lr == null) return;
+
+            float parentScale = parentTrans.lossyScale.x;
+
+            float adjustedRadius = _currentRadius / (parentScale > 0 ? parentScale : 1f);
+
+            float deltaTheta = 2f * Mathf.PI / 32;
+            for (int i = 0; i < 32; i++)
+            {
+                float x = adjustedRadius * Mathf.Cos(deltaTheta * i);
+                float z = adjustedRadius * Mathf.Sin(deltaTheta * i);
+                lr.SetPosition(i, new Vector3(x, z, 0));
+            }
+            lr.widthMultiplier = 0.12f / parentScale;
         }
 
         //Sanity check
