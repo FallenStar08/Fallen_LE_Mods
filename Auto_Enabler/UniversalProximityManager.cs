@@ -21,11 +21,14 @@ namespace Fallen_LE_Mods.Auto_Enabler
         private static float _currentSqrDist = 25f;
         private static float _currentRadius = 5f;
         private const int POS_COUNT = 64;
-        private const float LINE_WIDTH = 0.25f;
+        private const float LINE_WIDTH = 0.12f;
+        private const float RING_Y_OFFSET = 0.15f;
+        private static readonly int FloorMask = (1 << 0) | (1 << 11) | (1 << 14);
         private struct TrackedObject
         {
             public long PtrAddr;
             public Transform Trans;
+            public Vector3 LastPos;
             public WorldObjectClickListener Listener;
             public GameObject? VisualRing;
             public string Name;
@@ -104,12 +107,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
             foreach (var obj in activeObjects)
             {
-                if (obj.VisualRing == null) continue;
-
-                obj.VisualRing.transform.localScale = new Vector3(_currentRadius, _currentRadius, _currentRadius);
-
-                var lr = obj.VisualRing.GetComponent<LineRenderer>();
-                if (lr != null) lr.widthMultiplier = LINE_WIDTH / _currentRadius;
+                if (obj.VisualRing != null) UpdateRingPoints(obj.VisualRing);
             }
         }
 
@@ -138,9 +136,10 @@ namespace Fallen_LE_Mods.Auto_Enabler
             lr.loop = true;
 
             if (lr.material == null || lr.material.shader.name != "UI/Default")
-            {
                 lr.material = new Material(Shader.Find("UI/Default"));
-            }
+
+            lr.material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+            lr.material.renderQueue = 3500;
             lr.material.color = _prefColor!.Value;
 
             float deltaTheta = 2f * Mathf.PI / POS_COUNT;
@@ -159,28 +158,45 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
             try
             {
-                //Instantiate at Root
                 GameObject ringGo = UnityEngine.Object.Instantiate(_ringTemplate);
                 ringGo.name = "ProximityRing";
                 ringGo.transform.SetParent(null);
-
-
-                ringGo.transform.localScale = new Vector3(_currentRadius, _currentRadius, _currentRadius);
-
-                var lr = ringGo.GetComponent<LineRenderer>();
-                if (lr != null) lr.widthMultiplier = LINE_WIDTH / _currentRadius;
-
-                float yOffset = 0.12f;
-                Vector3 spawnPos = parent.transform.position + Vector3.up;
-                ringGo.transform.position = Physics.Raycast(spawnPos, Vector3.down, out RaycastHit hit, 3.0f)
-                    ? hit.point + (Vector3.up * yOffset)
-                    : parent.transform.position + (Vector3.up * yOffset);
-
+                UpdateRingPoints(ringGo);
+                Vector3 pivot = parent.transform.position;
+                Vector3 rayStart = pivot + (Vector3.up * 3.0f);
+                SnapRingToGround(ringGo, pivot);
                 ringGo.transform.rotation = Quaternion.Euler(90, 0, 0);
                 ringGo.SetActive(true);
                 return ringGo;
             }
             catch { return null; }
+        }
+
+        private static void UpdateRingPoints(GameObject ring)
+        {
+            if (ring == null) return;
+            var lr = ring.GetComponent<LineRenderer>();
+            if (lr == null) return;
+
+            ring.transform.localScale = Vector3.one;
+            lr.widthMultiplier = LINE_WIDTH;
+
+            float deltaTheta = 2f * Mathf.PI / POS_COUNT;
+            for (int i = 0; i < POS_COUNT; i++)
+            {
+                float x = _currentRadius * Mathf.Cos(deltaTheta * i);
+                float z = _currentRadius * Mathf.Sin(deltaTheta * i);
+                lr.SetPosition(i, new Vector3(x, z, 0));
+            }
+        }
+
+        private static void SnapRingToGround(GameObject ring, Vector3 pivot)
+        {
+            Vector3 rayStart = pivot + (Vector3.up * 3.0f);
+
+            ring.transform.position = Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 6.0f, FloorMask)
+                ? hit.point + (Vector3.up * RING_Y_OFFSET)
+                : pivot + (Vector3.up * RING_Y_OFFSET);
         }
 
 
@@ -255,6 +271,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             {
                 PtrAddr = addr,
                 Trans = go.transform,
+                LastPos = go.transform.position,
                 Listener = listener,
                 VisualRing = ring,
                 Name = go.name ?? "Unknown Object",
@@ -295,9 +312,21 @@ namespace Fallen_LE_Mods.Auto_Enabler
                         var obj = activeObjects[i];
 
                         if (IsObjectInvalid(ref obj, i)) continue;
-                        //may be needed later
-                        //if (obj.VisualRing != null)
-                        //    obj.VisualRing.transform.position = obj.Trans.position;
+                        if (obj.VisualRing != null)
+                        {
+                            Vector3 currentPos = obj.Trans.position;
+
+                            if (Vector3.SqrMagnitude(obj.LastPos - currentPos) > 0.01f)
+                            {
+                                LogDebug($"[Proximity Manager] Updated Ring Position for: {obj.Name}");
+                                obj.VisualRing.transform.position = currentPos;
+
+                                SnapRingToGround(obj.VisualRing, currentPos);
+
+                                obj.LastPos = currentPos;
+                                activeObjects[i] = obj;
+                            }
+                        }
                         if (HandleProximity(obj, pPos, limit, i)) continue;
                     }
                 }
