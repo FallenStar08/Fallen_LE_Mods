@@ -21,6 +21,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
         private static float _currentSqrDist = 25f;
         private static float _currentRadius = 5f;
         private const int POS_COUNT = 64;
+        private const float LINE_WIDTH = 0.25f;
         private struct TrackedObject
         {
             public long PtrAddr;
@@ -77,7 +78,6 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
             CreateTemplate();
             MelonCoroutines.Start(UpdateLoop());
-            MelonCoroutines.Start(InitialStartupSweep());
             running = true;
             FallenUI.RegisterMenu(DrawProximitySettings);
             Log("[Proximity Manager] Initialized and Prefs Saved!");
@@ -105,7 +105,11 @@ namespace Fallen_LE_Mods.Auto_Enabler
             foreach (var obj in activeObjects)
             {
                 if (obj.VisualRing == null) continue;
-                ApplyScaleToRing(obj.VisualRing, obj.Trans);
+
+                obj.VisualRing.transform.localScale = new Vector3(_currentRadius, _currentRadius, _currentRadius);
+
+                var lr = obj.VisualRing.GetComponent<LineRenderer>();
+                if (lr != null) lr.widthMultiplier = LINE_WIDTH / _currentRadius;
             }
         }
 
@@ -128,15 +132,14 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
             LineRenderer lr = _ringTemplate.AddComponent<LineRenderer>();
             lr.useWorldSpace = false;
-            lr.widthMultiplier = 0.12f;
+            lr.widthMultiplier = LINE_WIDTH;
             lr.positionCount = POS_COUNT;
             lr.castShadows = false;
             lr.loop = true;
 
             if (lr.material == null || lr.material.shader.name != "UI/Default")
             {
-                Shader uiShader = Shader.Find("UI/Default");
-                lr.material = new Material(uiShader);
+                lr.material = new Material(Shader.Find("UI/Default"));
             }
             lr.material.color = _prefColor!.Value;
 
@@ -156,60 +159,31 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
             try
             {
-                GameObject ringGo = UnityEngine.Object.Instantiate(_ringTemplate, parent.transform);
+                //Instantiate at Root
+                GameObject ringGo = UnityEngine.Object.Instantiate(_ringTemplate);
                 ringGo.name = "ProximityRing";
+                ringGo.transform.SetParent(null);
+
+
+                ringGo.transform.localScale = new Vector3(_currentRadius, _currentRadius, _currentRadius);
+
+                var lr = ringGo.GetComponent<LineRenderer>();
+                if (lr != null) lr.widthMultiplier = LINE_WIDTH / _currentRadius;
 
                 float yOffset = 0.12f;
-                Vector3 spawnPos = parent.transform.position + (Vector3.up * 1.0f); // Start 1m above
+                Vector3 spawnPos = parent.transform.position + Vector3.up;
+                ringGo.transform.position = Physics.Raycast(spawnPos, Vector3.down, out RaycastHit hit, 3.0f)
+                    ? hit.point + (Vector3.up * yOffset)
+                    : parent.transform.position + (Vector3.up * yOffset);
 
-                if (Physics.Raycast(spawnPos, Vector3.down, out RaycastHit hit, 3.0f))
-                {
-                    ringGo.transform.position = hit.point + (Vector3.up * yOffset);
-                }
-                else
-                {
-                    ringGo.transform.localPosition = new Vector3(0, yOffset, 0);
-                }
-
-                //Keep flat
                 ringGo.transform.rotation = Quaternion.Euler(90, 0, 0);
-                ApplyScaleToRing(ringGo, parent.transform);
                 ringGo.SetActive(true);
                 return ringGo;
             }
             catch { return null; }
         }
 
-        private static void ApplyScaleToRing(GameObject ring, Transform parentTrans)
-        {
-            if (ring == null || parentTrans == null) return;
-            var lr = ring.GetComponent<LineRenderer>();
-            if (lr == null) return;
 
-            float parentScale = parentTrans.lossyScale.x;
-
-            float adjustedRadius = _currentRadius / (parentScale > 0 ? parentScale : 1f);
-
-            float deltaTheta = 2f * Mathf.PI / POS_COUNT;
-            for (int i = 0; i < POS_COUNT; i++)
-            {
-                float x = adjustedRadius * Mathf.Cos(deltaTheta * i);
-                float z = adjustedRadius * Mathf.Sin(deltaTheta * i);
-                lr.SetPosition(i, new Vector3(x, z, 0));
-            }
-            lr.widthMultiplier = 0.12f / parentScale;
-        }
-
-        //Sanity check
-        private static IEnumerator InitialStartupSweep()
-        {
-            yield return new WaitForSeconds(1f);
-            var all = GameObject.FindObjectsOfType<WorldObjectClickListener>(true);
-            foreach (var listener in all)
-            {
-                ProcessPotentialTarget(listener);
-            }
-        }
         //Objects Birth
         [HarmonyPatch(typeof(InteractableListener), nameof(InteractableListener.Awake))]
         public class ListenerAwakePatch
@@ -321,7 +295,9 @@ namespace Fallen_LE_Mods.Auto_Enabler
                         var obj = activeObjects[i];
 
                         if (IsObjectInvalid(ref obj, i)) continue;
-
+                        //may be needed later
+                        //if (obj.VisualRing != null)
+                        //    obj.VisualRing.transform.position = obj.Trans.position;
                         if (HandleProximity(obj, pPos, limit, i)) continue;
                     }
                 }
