@@ -374,7 +374,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
                 if (sqrMag2D <= limit)
                 {
                     //fix cemetery chests?
-                    if (obj.Name.Contains("Tomb Reward"))
+                    if (obj.Name.Contains("Frontend"))
                     {
                         var condition = obj.Trans.gameObject.GetComponentInChildren<ConditionHandler>();
                         if (condition != null)
