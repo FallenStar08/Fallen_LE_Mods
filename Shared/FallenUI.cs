@@ -65,10 +65,6 @@ namespace Fallen_LE_Mods.Shared
                     scrollRect.horizontal = false;
                     scrollRect.content = socialContainer.GetComponent<RectTransform>();
 
-                    //Init tag
-                    if (socialContainer.Find("FallenMods_Initialized") != null) return;
-                    new GameObject("FallenMods_Initialized").transform.SetParent(socialContainer);
-
                     //trigger all our registered draw calls for this menu
                     foreach (var drawCall in FallenUI.OnMenuBuild)
                     {
@@ -81,12 +77,15 @@ namespace Fallen_LE_Mods.Shared
         }
         public static GameObject? CreateHeader(Transform parent, string title, string objectName)
         {
+            // Check if THIS specific header already exists
+            string internalName = $"FallenHeader_{objectName}";
+            if (parent.Find(internalName) != null) return null;
+
             Transform original = parent.Find("Header-Social");
             if (original == null) return null;
 
             GameObject header = UnityEngine.Object.Instantiate(original.gameObject, parent);
-            header.name = $"FallenHeader_{objectName}";
-
+            header.name = internalName;
             //Cleanup Localization
             var textObj = header.GetComponentInChildren<TextMeshProUGUI>()?.gameObject;
             if (textObj != null)

@@ -1,5 +1,7 @@
 ﻿#if RELEASE
 using Fallen_LE_Mods.Dev;
+using Fallen_LE_Mods.Improved_Tooltips;
+
 #endif
 using Fallen_LE_Mods.Shared;
 using HarmonyLib;
@@ -37,9 +39,15 @@ namespace Fallen_LE_Mods
             var patchMethod = AccessTools.Method(typeof(GroundLabelPatch), "Postfix");
             var patch = new HarmonyMethod(patchMethod);
             HarmonyInstance.Patch(targetMethod, null, patch);
+
             //FallenUtils.Log("Patch applied successfully.");
 
 
+        }
+
+        public override void OnInitializeMelon()
+        {
+            Fallen_LE_Mods.Improved_Tooltips.GroundLabelManager.Initialize();
         }
 #endif
 
