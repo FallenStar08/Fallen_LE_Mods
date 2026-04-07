@@ -149,9 +149,11 @@ namespace Fallen_LE_Mods.Auto_Enabler
             lr.castShadows = false;
             lr.loop = true;
 
-            if (lr.material == null || lr.material.name.Contains("Default"))
+            if (lr.material == null || lr.material.shader.name != "UI/Default")
             {
-                lr.material = new Material(Shader.Find("Sprites/Default"));
+                Shader uiShader = Shader.Find("UI/Default");
+
+                lr.material = new Material(uiShader);
             }
             lr.material.color = _prefColor.Value;
 
