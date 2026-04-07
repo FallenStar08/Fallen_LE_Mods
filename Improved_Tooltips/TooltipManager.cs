@@ -10,8 +10,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
     public class TooltipManager : MelonMod
     {
         private const string LoreMarker = "\u200B\u200B\u200B"; // Invisible marker
-        public static MelonPreferences_Category? _category;
-        public static MelonPreferences_Entry<bool>? _prefShowFullItemName;
+
 
         private static void HandleTooltipUpdate(ItemDataUnpacked item)
         {
@@ -25,6 +24,21 @@ namespace Fallen_LE_Mods.Improved_Tooltips
             }
 
             string additions = "";
+            bool hasLore = !string.IsNullOrEmpty(item.LoreText);
+
+            void AppendAddition(string content)
+            {
+                if (string.IsNullOrEmpty(content)) return;
+
+                if (string.IsNullOrEmpty(additions))
+                {
+                    additions += hasLore ? $"\n\n{content}" : content;
+                }
+                else
+                {
+                    additions += $"\n\n{content}";
+                }
+            }
 
             Rule? match = FallenUtils.MatchFilterRule(item);
             if (match != null && (ItemList.isEquipment(item.itemType) || ItemList.isIdol(item.itemType)))
@@ -32,12 +46,13 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                 var description = match.GetRuleDescription();
                 if (!string.IsNullOrEmpty(description))
                 {
-                    additions += $"\n\n<color=#E0E0E0>Filter Rule:</color> {description}";
+                    AppendAddition($"<color=#E0E0E0>Filter Rule:</color> {description}");
                 }
             }
 
             if (item.isUniqueSetOrLegendary())
             {
+                string uniqueText = "";
                 bool isWW = item.weaversWill > 0;
                 ItemDataUnpacked? matchedInStash = FallenUtils.FindSimilarUniqueItemInStash(item, isWW);
 
@@ -45,13 +60,12 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                 {
                     if (item.isSet())
                     {
-                        additions += "\n\n<color=#00FF00>[OWNED - IN STASH]</color>";
+                        uniqueText = "<color=#00FF00>[OWNED - IN STASH]</color>";
                     }
                     else
                     {
-                        int currentVal = isWW ? item.weaversWill : item.legendaryPotential;
+                        int currentVal = isWW ? item.weaversWill : item.getLegendaryPotentialTier();
                         int stashVal = isWW ? matchedInStash.weaversWill : matchedInStash.legendaryPotential;
-
                         string statColor = isWW ? "#5D3FD3" : "#FF0000";
                         string statName = isWW ? "WW" : "LP";
 
@@ -60,29 +74,29 @@ namespace Fallen_LE_Mods.Improved_Tooltips
                             : stashVal < currentVal
                             ? $"<color=#00FF00>↑</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)"
                             : $"<color=#0000FF>=</color> (Stash has <color={statColor}>{statName}:{stashVal}</color>)";
-                        additions += $"\n\n<color=#00FF00>[OWNED]</color> - <color={statColor}>[{statName}:{currentVal}]</color> {comparison}";
+
+                        uniqueText = $"<color=#00FF00>[OWNED]</color> - <color={statColor}>[{statName}:{currentVal}]</color> {comparison}";
+                    }
+                }
+                else if (matchedInStash != null && matchedInStash.Pointer == item.Pointer)
+                {
+                    if (item.isSet())
+                    {
+                        uniqueText = "<color=#00FF00>[OWNED - IN STASH (Self)]</color>";
+                    }
+                    else
+                    {
+                        string statName = isWW ? "WW" : "LP";
+                        string diamond = "<rotate=45><voffset=0.2em><size=80%>■</size></voffset></rotate>";
+                        uniqueText = $"<color=#FFD700>{diamond} BEST {statName} IN STASH {diamond}</color>";
                     }
                 }
                 else
                 {
-                    if (matchedInStash != null && matchedInStash.Pointer == item.Pointer)
-                    {
-                        if (item.isSet())
-                        {
-                            additions += "\n\n<color=#00FF00>[OWNED - IN STASH (Self)]</color>";
-                        }
-                        else
-                        {
-                            string statName = isWW ? "WW" : "LP";
-                            string diamond = "<rotate=45><voffset=0.2em><size=80%>■</size></voffset></rotate>";
-                            additions += $"\n\n<color=#FFD700>{diamond} BEST {statName} IN STASH {diamond}</color>";
-                        }
-                    }
-                    else
-                    {
-                        additions += "\n\n<i><color=#FFD700>[NEW - NOT IN STASH]</color></i>";
-                    }
+                    uniqueText = "<i><color=#FFD700>[NEW - NOT IN STASH]</color></i>";
                 }
+
+                AppendAddition(uniqueText);
             }
 
             if (!string.IsNullOrEmpty(additions))
