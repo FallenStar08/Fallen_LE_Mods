@@ -43,7 +43,9 @@ namespace Fallen_LE_Mods.Auto_Enabler
             { "Tomb Reward Chest", "Cemetery Chest" },
             { "Monolith Reward Chest", "Monolith Chest" },
             { "Cache Click Listener", "Cache" },
-            { "void portal", "Void Portal" }
+            { "void portal", "Void Portal" },
+            { "Rune Prison Visuals", "Rune Prison" },
+            { "Time Beast Rift Visuals", "Time Beast Rift" }
         };
 
         public static void Initialize()
@@ -169,9 +171,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
         private static GameObject? CreateProximityRing(GameObject parent)
         {
             if (!_prefShowRings.Value) return null;
-
             if (_ringTemplate == null) CreateTemplate();
-            if (_ringTemplate == null) return null;
 
             try
             {
