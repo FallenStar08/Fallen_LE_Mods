@@ -20,6 +20,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static float _currentSqrDist = 25f;
         private static float _currentRadius = 5f;
+        private const int POS_COUNT = 64;
         private struct TrackedObject
         {
             public long PtrAddr;
@@ -128,7 +129,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             LineRenderer lr = _ringTemplate.AddComponent<LineRenderer>();
             lr.useWorldSpace = false;
             lr.widthMultiplier = 0.12f;
-            lr.positionCount = 32;
+            lr.positionCount = POS_COUNT;
             lr.castShadows = false;
             lr.loop = true;
 
@@ -139,8 +140,8 @@ namespace Fallen_LE_Mods.Auto_Enabler
             }
             lr.material.color = _prefColor!.Value;
 
-            float deltaTheta = 2f * Mathf.PI / 32;
-            for (int i = 0; i < 32; i++)
+            float deltaTheta = 2f * Mathf.PI / POS_COUNT;
+            for (int i = 0; i < POS_COUNT; i++)
             {
                 float x = Mathf.Cos(deltaTheta * i);
                 float z = Mathf.Sin(deltaTheta * i);
@@ -189,8 +190,8 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
             float adjustedRadius = _currentRadius / (parentScale > 0 ? parentScale : 1f);
 
-            float deltaTheta = 2f * Mathf.PI / 32;
-            for (int i = 0; i < 32; i++)
+            float deltaTheta = 2f * Mathf.PI / POS_COUNT;
+            for (int i = 0; i < POS_COUNT; i++)
             {
                 float x = adjustedRadius * Mathf.Cos(deltaTheta * i);
                 float z = adjustedRadius * Mathf.Sin(deltaTheta * i);
