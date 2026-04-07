@@ -107,7 +107,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
             foreach (var obj in activeObjects)
             {
-                if (obj.VisualRing != null) UpdateRingPoints(obj.VisualRing);
+                if (obj.VisualRing != null) UpdateRingPoints(obj.VisualRing, obj.Name);
             }
         }
 
@@ -151,7 +151,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             }
         }
 
-        private static GameObject? CreateProximityRing(GameObject parent)
+        private static GameObject? CreateProximityRing(GameObject parent, string objName = "")
         {
             if (!_prefShowRings.Value) return null;
             if (_ringTemplate == null) CreateTemplate();
@@ -161,7 +161,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
                 GameObject ringGo = UnityEngine.Object.Instantiate(_ringTemplate);
                 ringGo.name = "ProximityRing";
                 ringGo.transform.SetParent(null);
-                UpdateRingPoints(ringGo);
+                UpdateRingPoints(ringGo, objName);
                 Vector3 pivot = parent.transform.position;
                 Vector3 rayStart = pivot + (Vector3.up * 3.0f);
                 SnapRingToGround(ringGo, pivot);
@@ -172,11 +172,20 @@ namespace Fallen_LE_Mods.Auto_Enabler
             catch { return null; }
         }
 
-        private static void UpdateRingPoints(GameObject ring)
+        private static void UpdateRingPoints(GameObject ring, string objName = "")
         {
             if (ring == null) return;
             var lr = ring.GetComponent<LineRenderer>();
             if (lr == null) return;
+
+            float radiusToDraw = _currentRadius;
+
+            //Clamp to 5 for cem chest cause the trigger is fucked up
+            if (objName.Contains("Frontend"))
+            {
+                radiusToDraw = Mathf.Min(_currentRadius, 5.0f);
+            }
+
 
             ring.transform.localScale = Vector3.one;
             lr.widthMultiplier = LINE_WIDTH;
@@ -184,8 +193,8 @@ namespace Fallen_LE_Mods.Auto_Enabler
             float deltaTheta = 2f * Mathf.PI / POS_COUNT;
             for (int i = 0; i < POS_COUNT; i++)
             {
-                float x = _currentRadius * Mathf.Cos(deltaTheta * i);
-                float z = _currentRadius * Mathf.Sin(deltaTheta * i);
+                float x = radiusToDraw * Mathf.Cos(deltaTheta * i);
+                float z = radiusToDraw * Mathf.Sin(deltaTheta * i);
                 lr.SetPosition(i, new Vector3(x, z, 0));
             }
         }
@@ -265,7 +274,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
         {
             knownPtrs.Add(addr);
 
-            GameObject? ring = CreateProximityRing(go);
+            GameObject? ring = CreateProximityRing(go, go.name);
 
             activeObjects.Add(new TrackedObject
             {
@@ -376,19 +385,21 @@ namespace Fallen_LE_Mods.Auto_Enabler
                 float dz = pPos.z - oPos.z;
                 float sqrMag2D = (dx * dx) + (dz * dz);
 
-                if (sqrMag2D <= limit)
-                {
-                    //fix cemetery chests?
-                    if (obj.Name.Contains("Frontend"))
-                    {
-                        var condition = obj.Trans.gameObject.GetComponentInChildren<ConditionHandler>();
-                        if (condition != null)
-                        {
-                            condition.canOnlyTriggerOnce = false;
-                            MelonCoroutines.Start(DelayedTrigger(obj.Trans.gameObject, obj.Listener));
-                        }
-                    }
+                float effectiveLimit = limit;
 
+                if (obj.Name.Contains("Frontend"))
+                {
+                    float maxSafeRadius = 5.0f;
+                    float maxSafeSqr = maxSafeRadius * maxSafeRadius;
+
+                    if (effectiveLimit > maxSafeSqr)
+                    {
+                        effectiveLimit = maxSafeSqr;
+                    }
+                }
+
+                if (sqrMag2D <= effectiveLimit)
+                {
                     obj.Listener.ObjectClick(obj.Trans.gameObject, true);
                     LogDebug($"[Proximity Manager] [Auto-Activate] Success: {obj.Name}");
                     CleanupObject(index);
@@ -403,25 +414,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             }
             return false;
         }
-        private static IEnumerator DelayedTrigger(GameObject target, WorldObjectClickListener listener)
-        {
-            yield return null;
 
-            if (target == null || target.Pointer == IntPtr.Zero) yield break;
-
-            var condition = target.GetComponentInChildren<ConditionHandler>();
-            if (condition != null)
-            {
-                condition.TryTriggerInteraction(GameReferencesCache.player.gameObject);
-
-                if (listener != null && listener.Pointer != IntPtr.Zero)
-                {
-                    listener.ObjectClick(target, false);
-                }
-
-                LogDebug($"[Proximity Manager] Delayed Trigger Executed for: {target.name}");
-            }
-        }
         private static void CleanupObject(int index)
         {
             var obj = activeObjects[index];
