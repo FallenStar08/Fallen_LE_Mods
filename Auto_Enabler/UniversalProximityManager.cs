@@ -356,7 +356,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
                         if (condition != null)
                         {
                             condition.canOnlyTriggerOnce = false;
-                            LogDebug($"[Proximity Manager] Unlocked ConditionHandler for: {obj.Name}");
+                            MelonCoroutines.Start(DelayedTrigger(obj.Trans.gameObject, obj.Listener));
                         }
                     }
 
@@ -374,7 +374,25 @@ namespace Fallen_LE_Mods.Auto_Enabler
             }
             return false;
         }
+        private static IEnumerator DelayedTrigger(GameObject target, WorldObjectClickListener listener)
+        {
+            yield return null;
 
+            if (target == null || target.Pointer == IntPtr.Zero) yield break;
+
+            var condition = target.GetComponentInChildren<ConditionHandler>();
+            if (condition != null)
+            {
+                condition.TryTriggerInteraction(GameReferencesCache.player.gameObject);
+
+                if (listener != null && listener.Pointer != IntPtr.Zero)
+                {
+                    listener.ObjectClick(target, false);
+                }
+
+                LogDebug($"[Proximity Manager] Delayed Trigger Executed for: {target.name}");
+            }
+        }
         private static void CleanupObject(int index)
         {
             var obj = activeObjects[index];
