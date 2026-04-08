@@ -39,11 +39,15 @@ namespace Fallen_LE_Mods.Improved_Tooltips
 
             FallenUI.RegisterMenu((container) =>
             {
-                var header = FallenUI.CreateHeader(container, "Improved Tooltips", "GroundLabels");
+                var header = FallenUI.CreateHeader(container, $"Improved Tooltips v{BuildInfo.Version}", "GroundLabels");
                 if (header == null) return;
+                if (VersionChecker.UpdateAvailable)
+                {
+                    FallenUI.CreateUpdateNotice(container, VersionChecker.LatestVersion);
+                }
                 FallenUI.CreateToggle(container, "Show LP On Ground Labels", description1, _prefShowLPOnGroundLabels);
-                FallenUI.CreateToggle(container, "Show LP Comparison", description2, _prefShowLPComparison);
-                FallenUI.CreateToggle(container, "Show Full Item Name", description3, _prefShowFullItemName);
+                FallenUI.CreateToggle(container, "Show LP Comparison On Ground Labels", description2, _prefShowLPComparison);
+                FallenUI.CreateToggle(container, "Show Full Item Name On Ground Labels", description3, _prefShowFullItemName);
             });
             running = true;
         }

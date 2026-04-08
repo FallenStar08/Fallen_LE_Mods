@@ -289,5 +289,24 @@ namespace Fallen_LE_Mods.Shared
             }
             return sliderGo;
         }
+        public static void CreateUpdateNotice(Transform parent, string newVersion)
+        {
+            string objectName = $"FallenUpdateNotice_{BuildInfo.Name.Replace(" ", "")}";
+            if (parent.Find(objectName) != null) return;
+
+            GameObject notice = CreateLabel(parent, $"* UPDATE AVAILABLE: v{newVersion} *", "UpdateNotice")!;
+            notice.name = objectName;
+
+            var text = notice.GetComponentInChildren<TextMeshProUGUI>();
+            if (text != null)
+            {
+                text.color = new Color(1f, 0.84f, 0f, 1f); // Gold
+                text.fontSize *= 0.8f;
+                text.text = $"<u>{text.text}</u>";
+                text.alignment = TextAlignmentOptions.Center;
+            }
+
+
+        }
     }
 }

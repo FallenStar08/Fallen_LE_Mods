@@ -86,7 +86,11 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static void DrawProximitySettings(Transform container)
         {
-            var header = FallenUI.CreateHeader(container, "Fallen's Proximity Manager", "ProxHeader");
+            var header = FallenUI.CreateHeader(container, $"Fallen's Proximity Manager v{BuildInfo.Version}", "ProxHeader");
+            if (VersionChecker.UpdateAvailable)
+            {
+                FallenUI.CreateUpdateNotice(container, VersionChecker.LatestVersion);
+            }
             if (header == null) return;
 
             FallenUI.CreateToggle(container, "Show Proximity Rings", "Visual colored circles around shrines and chests.", _prefShowRings);
