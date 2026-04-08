@@ -43,6 +43,7 @@ namespace Fallen_LE_Mods.Improved_Observatory
             if (string.IsNullOrWhiteSpace(query)) return true;
             if (star == null || star.Pointer == IntPtr.Zero) return false;
 
+            //Split by space for AND logic
             string[] keywords = query.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (keywords.Length == 0) return true;
 
@@ -52,11 +53,28 @@ namespace Fallen_LE_Mods.Improved_Observatory
 
             foreach (var word in keywords)
             {
+                //NOT Logic (e.g. -word)
                 if (word.StartsWith("-") && word.Length > 1)
                 {
                     string excludeWord = word.Substring(1);
                     if (combinedData.Contains(excludeWord)) return false;
                 }
+                //OR Logic (e.g. word1|word2)
+                else if (word.Contains("|"))
+                {
+                    string[] orParts = word.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                    bool anyMatch = false;
+                    foreach (var part in orParts)
+                    {
+                        if (combinedData.Contains(part))
+                        {
+                            anyMatch = true;
+                            break;
+                        }
+                    }
+                    if (!anyMatch) return false;
+                }
+                //AND Logic (default, e.g. word)
                 else
                 {
                     if (!combinedData.Contains(word)) return false;
