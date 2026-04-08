@@ -72,8 +72,6 @@ namespace Fallen_LE_Mods.Auto_Enabler
                 }
             }
 
-            _category.SaveToFile();
-
             UpdateSettings();
 
             _prefDistance.OnEntryValueChanged.Subscribe((oldV, newV) => UpdateSettings());
