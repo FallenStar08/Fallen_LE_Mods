@@ -8,9 +8,11 @@ using Rule = Il2CppItemFiltering.Rule;
 
 namespace Fallen_LE_Mods.Shared
 {
+
     //Maybe this should be split, idk..
     public static class FallenUtils
     {
+        public static HarmonyLib.Harmony? Harmony;
 
         public static void Log(string msg)
         {
