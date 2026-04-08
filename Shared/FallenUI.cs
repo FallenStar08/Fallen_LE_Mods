@@ -65,6 +65,21 @@ namespace Fallen_LE_Mods.Shared
                     scrollRect.horizontal = false;
                     scrollRect.content = socialContainer.GetComponent<RectTransform>();
 
+                    if (scrollRect.verticalScrollbar == null)
+                    {
+                        GameObject soundScroll = GameObject.Find("GUI/Panel System/Panel Stacks/Left Panel Stack/Settings Panel(Clone)/Content/Sound/Scrollbar");
+                        if (soundScroll != null)
+                        {
+                            GameObject myScroll = UnityEngine.Object.Instantiate(soundScroll, social);
+                            myScroll.name = "FallenScrollbar";
+
+                            var sbComp = myScroll.GetComponent<Scrollbar>();
+                            scrollRect.verticalScrollbar = sbComp;
+                            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+                        }
+                    }
+
+
                     //trigger all our registered draw calls for this menu
                     foreach (var drawCall in FallenUI.OnMenuBuild)
                     {
