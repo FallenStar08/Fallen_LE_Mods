@@ -39,7 +39,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
 
             FallenUI.RegisterMenu((container) =>
             {
-                var header = FallenUI.CreateHeader(container, "Ground Labels", "GroundLabels");
+                var header = FallenUI.CreateHeader(container, "Improved Tooltips", "GroundLabels");
                 if (header == null) return;
                 FallenUI.CreateToggle(container, "Show LP On Ground Labels", description1, _prefShowLPOnGroundLabels);
                 FallenUI.CreateToggle(container, "Show LP Comparison", description2, _prefShowLPComparison);
