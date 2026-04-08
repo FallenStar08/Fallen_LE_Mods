@@ -13,6 +13,7 @@ namespace Fallen_LE_Mods.Shared
 
     public static class FallenUI
     {
+
         private static object? _saveCoroutine;
 
         public static readonly List<Action<Transform>> OnMenuBuild = new();
@@ -113,6 +114,25 @@ namespace Fallen_LE_Mods.Shared
                 textComp.color = new Color(0.1f, 0.8f, 1f, 1f);
             }
             return header;
+        }
+
+        public static GameObject? CreateLabel(Transform parent, string labelText, string objectName)
+        {
+            string internalName = $"FallenLabel_{objectName}";
+            Transform original = parent.Find("Toogle - Profanity Filter/Input Labels/Label");
+            if (original == null) return null;
+            GameObject labelGo = UnityEngine.Object.Instantiate(original.gameObject, parent);
+            if (labelGo == null) return null;
+            labelGo.name = internalName;
+            TextMeshProUGUI? label = labelGo.GetComponent<TextMeshProUGUI>();
+            if (labelGo != null) label.text = labelText;
+            foreach (var script in labelGo.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                string fName = script.GetIl2CppType().FullName;
+                if (fName.Contains("Localize"))
+                    UnityEngine.Object.Destroy(script);
+            }
+            return labelGo;
         }
 
         public static GameObject? CreateToggle(Transform parent, string labelText, string sublabelText, MelonPreferences_Entry<bool> pref)
@@ -307,6 +327,33 @@ namespace Fallen_LE_Mods.Shared
             }
 
 
+        }
+
+        public static GameObject? CreateSearchBox(Transform parent, string name, Action<string> onValueChanged)
+        {
+            Transform existing = parent.Find(name);
+            if (existing != null) return existing.gameObject;
+
+            GameObject stashSearchGo = GameObject.Find("GUI/Panel System/Panel Pool/StashPanelExpandable(Clone)/left-container/SearchBox");
+            if (stashSearchGo == null) return null;
+
+            GameObject searchBox = UnityEngine.Object.Instantiate(stashSearchGo, parent);
+            searchBox.name = name;
+
+            foreach (var comp in searchBox.GetComponents<MonoBehaviour>())
+            {
+                if (comp.GetIl2CppType().FullName.Contains("Stash"))
+                    UnityEngine.Object.Destroy(comp);
+            }
+
+            var inputField = searchBox.GetComponentInChildren<TMP_InputField>();
+            if (inputField != null)
+            {
+                inputField.onValueChanged.RemoveAllListeners();
+                inputField.onValueChanged.AddListener(onValueChanged);
+            }
+
+            return searchBox;
         }
     }
 }
