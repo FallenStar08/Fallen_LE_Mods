@@ -8,7 +8,7 @@
 	  <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Configurations>Debug;Release;NexusRelease;IMROVED_TOOLTIPS;AUTO_ENABLER;IMPROVED_TOOLTIPS</Configurations>
+    <Configurations>Debug;Release;AUTO_ENABLER;IMPROVED_TOOLTIPS;IMPROVED_OBSERVATORY</Configurations>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -547,10 +547,15 @@
 		<Compile Include="Improved_Tooltips\**\*.cs" />
 		<Compile Include="Auto_Enabler\**\*.cs" />
 		<Compile Include="MonoScripts\**\*.cs" />
+		<Compile Include="Improved_Observatory\**\*.cs" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'IMPROVED_TOOLTIPS'">
 		<Compile Include="Improved_Tooltips\**\*.cs" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)'=='IMPROVED_OBSERVATORY'">
+	  <Compile Include="Improved_Observatory\**\*.cs" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'AUTO_ENABLER'">
@@ -607,6 +612,12 @@
 		<DefineConstants>$(DefineConstants);IMPROVED_TOOLTIPS</DefineConstants>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)'=='IMPROVED_OBSERVATORY'">
+	  <AssemblyName>Fallen_Improved_Tooltips</AssemblyName>
+	  <ShouldZip>true</ShouldZip>
+	  <DefineConstants>$(DefineConstants);IMPROVED_OBSERVATORY</DefineConstants>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)' == 'AUTO_ENABLER'">
 		<AssemblyName>Fallen_Auto_Enabler</AssemblyName>
 		<ShouldZip>true</ShouldZip>
@@ -616,7 +627,7 @@
 
 	<Target Name="ZipNexusRelease" AfterTargets="Build" Condition="'$(ShouldZip)' == 'true'">
 		<ReadLinesFromFile File="BuildInfo.cs">
-			<Output TaskParameter="Lines" ItemName="BuildInfoLines"/>
+			<Output TaskParameter="Lines" ItemName="BuildInfoLines" />
 		</ReadLinesFromFile>
 
 		<PropertyGroup>

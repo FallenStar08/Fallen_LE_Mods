@@ -1,6 +1,4 @@
-﻿using Fallen_LE_Mods.Improved_Tooltips;
-using Fallen_LE_Mods.Shared;
-using Il2Cpp;
+﻿using Fallen_LE_Mods.Shared;
 using MelonLoader;
 
 namespace Fallen_LE_Mods
@@ -10,9 +8,10 @@ namespace Fallen_LE_Mods
         private readonly List<IFallenFeature> _features = new();
         public override void OnInitializeMelon()
         {
+            MelonCoroutines.Start(VersionChecker.CheckGitHubBuildInfo());
             FallenUtils.Harmony = this.HarmonyInstance;
 #if IMPROVED_TOOLTIPS || RELEASE
-            _features.Add(new ImprovedTooltipsFeature());
+            _features.Add(new Fallen_LE_Mods.Improved_Tooltips.ImprovedTooltipsFeature());
 #endif
 
 #if AUTO_ENABLER || RELEASE
