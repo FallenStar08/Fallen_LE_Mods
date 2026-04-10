@@ -613,7 +613,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='IMPROVED_OBSERVATORY'">
-	  <AssemblyName>Fallen_Improved_Tooltips</AssemblyName>
+	  <AssemblyName>Fallen_Improved_Observatory</AssemblyName>
 	  <ShouldZip>true</ShouldZip>
 	  <DefineConstants>$(DefineConstants);IMPROVED_OBSERVATORY</DefineConstants>
 	</PropertyGroup>
