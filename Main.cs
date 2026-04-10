@@ -1,4 +1,5 @@
 ﻿using Fallen_LE_Mods.Shared;
+using Fallen_LE_Mods.Shared.UI;
 using MelonLoader;
 
 namespace Fallen_LE_Mods
