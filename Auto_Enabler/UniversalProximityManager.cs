@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Fallen_LE_Mods.Shared;
+using Fallen_LE_Mods.Shared.UI;
 using HarmonyLib;
 using Il2Cpp;
 using MelonLoader;
@@ -97,7 +98,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
             FallenUI.CreateSlider(container, "Activation Radius", "Distance at which proximity activation occurs.", 1f, 10f, _prefDistance);
 
             // Sub-Filters
-            FallenUI.CreateHeader(container, "Auto-Activation Filters", "ProxFilters");
+            FallenUI.CreateHeader(container, "Auto-Activation Filters", "ProxFilters", FallenColors.GhostWhite);
             foreach (var entry in TypeToggles)
             {
                 FallenUI.CreateToggle(container, $"Auto-Activate {entry.Key}s", $"Enable or disable proximity activation for {entry.Key} objects.", entry.Value);
