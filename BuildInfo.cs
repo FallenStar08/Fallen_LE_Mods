@@ -18,7 +18,7 @@
         public const string Name = "FallenStar's Improved Observatory";
         public const string Version = "1.0.0";
         public const string MainClass = "MyMod";
-        public const string DownloadLink = "tbu";
+        public const string DownloadLink = "https://www.nexusmods.com/games/lastepoch/mods/28?tab=files";
 #else
         public const string Name = "FallenStar's LE Mods";
         public const string Version = "6.6.6";
