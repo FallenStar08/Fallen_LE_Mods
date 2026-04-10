@@ -7,13 +7,13 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;
 using static Fallen_LE_Mods.Shared.FallenUtils;
+using static Fallen_LE_Mods.Shared.UI.FallenUIPaths;
 
-namespace Fallen_LE_Mods.Shared
+namespace Fallen_LE_Mods.Shared.UI
 {
 
     public static class FallenUI
     {
-
         private static object? _saveCoroutine;
 
         public static readonly List<Action<Transform>> OnMenuBuild = new();
@@ -68,7 +68,7 @@ namespace Fallen_LE_Mods.Shared
 
                     if (scrollRect.verticalScrollbar == null)
                     {
-                        GameObject soundScroll = GameObject.Find("GUI/Panel System/Panel Stacks/Left Panel Stack/Settings Panel(Clone)/Content/Sound/Scrollbar");
+                        GameObject soundScroll = GameObject.Find(FallenUIPaths.GenericScrollBar.Root);
                         if (soundScroll != null)
                         {
                             GameObject myScroll = UnityEngine.Object.Instantiate(soundScroll, social);
@@ -91,8 +91,9 @@ namespace Fallen_LE_Mods.Shared
                 catch (Exception e) { Log($"[UI] Master Error: {e.Message}"); }
             }
         }
-        public static GameObject? CreateHeader(Transform parent, string title, string objectName)
+        public static GameObject? CreateHeader(Transform parent, string title, string objectName, Color? color = null)
         {
+            color ??= FallenColors.HeaderCyan;
             // Check if THIS specific header already exists
             string internalName = $"FallenHeader_{objectName}";
             if (parent.Find(internalName) != null) return null;
@@ -111,7 +112,7 @@ namespace Fallen_LE_Mods.Shared
 
                 var textComp = textObj.GetComponent<TextMeshProUGUI>();
                 textComp.text = title.ToUpper();
-                textComp.color = new Color(0.1f, 0.8f, 1f, 1f);
+                textComp.color = (Color)color;
             }
             return header;
         }
@@ -119,13 +120,19 @@ namespace Fallen_LE_Mods.Shared
         public static GameObject? CreateLabel(Transform parent, string labelText, string objectName)
         {
             string internalName = $"FallenLabel_{objectName}";
-            Transform original = parent.Find("Toogle - Profanity Filter/Input Labels/Label");
-            if (original == null) return null;
+            Transform original = parent.Find("Toogle - Profanity Filter/Input Labels/Label")
+                //Observatory fallback
+                ?? GameObject.Find("GUI/Panel System/Panel Stacks/Full Screen Panel Stack/Observatory(Clone)/YourFavorLabel/Label").transform;
+            if (original == null || original.gameObject == null)
+            {
+                Log("Failed to find a Label template for CreateLabel!");
+                return null;
+            }
             GameObject labelGo = UnityEngine.Object.Instantiate(original.gameObject, parent);
             if (labelGo == null) return null;
             labelGo.name = internalName;
             TextMeshProUGUI? label = labelGo.GetComponent<TextMeshProUGUI>();
-            if (labelGo != null) label.text = labelText;
+            label?.SetText(labelText);
             foreach (var script in labelGo.GetComponentsInChildren<MonoBehaviour>(true))
             {
                 string fName = script.GetIl2CppType().FullName;
@@ -179,11 +186,12 @@ namespace Fallen_LE_Mods.Shared
             field?.SetTextWithoutNotify(val);
         }
 
+        //This is legit horrible I want to kms looking at it ngl
         public static GameObject? CreateSlider(Transform parent, string labelText, string sublabelText, float minValue, float maxValue, MelonPreferences_Entry<float> pref)
         {
 
             //Source slider from master volume
-            GameObject soundContainer = GameObject.Find("GUI/Panel System/Panel Stacks/Left Panel Stack/Settings Panel(Clone)/Content/Sound/Viewport/Sound-container");
+            GameObject soundContainer = GameObject.Find(SoundTab.Root);
             if (soundContainer.IsNullOrDestroyed())
             {
                 Log("[UI] Sound-container not found");
@@ -309,22 +317,24 @@ namespace Fallen_LE_Mods.Shared
             }
             return sliderGo;
         }
-        public static void CreateUpdateNotice(Transform parent, string newVersion)
+        public static GameObject? CreateUpdateNotice(Transform parent, string newVersion)
         {
             string objectName = $"FallenUpdateNotice_{BuildInfo.Name.Replace(" ", "")}";
-            if (parent.Find(objectName) != null) return;
+            Transform existing = parent.Find(objectName);
+            if (existing != null) return existing.gameObject;
 
-            GameObject notice = CreateLabel(parent, $"* UPDATE AVAILABLE: v{newVersion} *", "UpdateNotice")!;
+            GameObject? notice = CreateLabel(parent, $"[{BuildInfo.Name}] UPDATE AVAILABLE: v{newVersion}", "UpdateNotice");
             notice.name = objectName;
 
             var text = notice.GetComponentInChildren<TextMeshProUGUI>();
             if (text != null)
             {
-                text.color = new Color(1f, 0.84f, 0f, 1f); // Gold
+                text.color = FallenColors.CoolGold;
                 text.fontSize *= 0.8f;
                 text.text = $"<u>{text.text}</u>";
                 text.alignment = TextAlignmentOptions.Center;
             }
+            return notice;
 
 
         }
@@ -334,7 +344,7 @@ namespace Fallen_LE_Mods.Shared
             Transform existing = parent.Find(name);
             if (existing != null) return existing.gameObject;
 
-            GameObject stashSearchGo = GameObject.Find("GUI/Panel System/Panel Pool/StashPanelExpandable(Clone)/left-container/SearchBox");
+            GameObject stashSearchGo = GameObject.Find(FallenUIPaths.Stash.SearchBox);
             if (stashSearchGo == null) return null;
 
             GameObject searchBox = UnityEngine.Object.Instantiate(stashSearchGo, parent);
@@ -349,6 +359,7 @@ namespace Fallen_LE_Mods.Shared
             var inputField = searchBox.GetComponentInChildren<TMP_InputField>();
             if (inputField != null)
             {
+                inputField.onFocusSelectAll = false;
                 inputField.onValueChanged.RemoveAllListeners();
                 inputField.onValueChanged.AddListener(onValueChanged);
             }
