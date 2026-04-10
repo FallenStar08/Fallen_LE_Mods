@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Fallen_LE_Mods.Shared;
+using Fallen_LE_Mods.Shared.UI;
 using Il2Cpp;
 using Il2CppRewired.Utils;
 using Il2CppTMPro;
