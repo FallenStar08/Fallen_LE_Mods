@@ -9,6 +9,9 @@ Shows which filter rule matched and if unique/set items are already owned.
 # [Fallen_Auto_Enabler](https://www.nexusmods.com/lastepoch/mods/25)
 Enable nearby Shrines/Caches/Chests etc without having to manually click on them, includes in game settings!
 
+# [Fallen_Improved_Observatory](https://www.nexusmods.com/lastepoch/mods/28)
+Adds a search bar to the observatory to filter prophecies and a button to quickly buy the matching ones automatically.
+
 # Credits
 - https://github.com/yukieiji/UnityExplorer
 - https://github.com/RCInet/LastEpoch_Mods for the cosmetic stuff
