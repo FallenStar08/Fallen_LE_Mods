@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Fallen_LE_Mods.Shared;
+using Fallen_LE_Mods.Shared.UI;
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppLE.Factions;
@@ -7,6 +8,7 @@ using Il2CppRewired.Utils;
 using Il2CppTMPro;
 using MelonLoader;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using static Fallen_LE_Mods.Shared.FallenUtils;
 
 namespace Fallen_LE_Mods.Improved_Observatory
@@ -15,6 +17,8 @@ namespace Fallen_LE_Mods.Improved_Observatory
     {
         public static Dictionary<ProphecyRegion, Il2CppSystem.Collections.Generic.IEnumerable<ConstellationStar>> AllRegionsStars { get; private set; } = new();
         public static ProphecyRegion ObservedRegion { get; private set; }
+        public static string? CurrentSearchQuery { get; set; }
+
 
         [HarmonyPatch(typeof(Constellation), "Init")]
         public class ProphecyInitPatch
@@ -55,8 +59,37 @@ namespace Fallen_LE_Mods.Improved_Observatory
                         var btn = quickBuyObj.GetComponent<UnityEngine.UI.Button>();
                         if (btn != null)
                         {
+                            //Remove the old single-click logic
                             btn.onClick.RemoveAllListeners();
-                            btn.onClick.AddListener(new Action(() => ObservatoryHelpers.BuyFirstMatchOrReroll(panel)));
+
+                            var trigger = quickBuyObj.GetComponent<EventTrigger>() ?? quickBuyObj.AddComponent<EventTrigger>();
+                            trigger.delegates.Clear();
+
+                            var pointerDown = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+                            pointerDown.callback.AddListener(new Action<BaseEventData>((e) =>
+                            {
+                                //Always do one immediate click first
+                                ObservatoryHelpers.BuyFirstMatchOrReroll(panel);
+                                //Start the hold-to-spam routine...
+                                MelonCoroutines.Start(ObservatoryHelpers.AutoSnipeRoutine(panel));
+                            }));
+                            trigger.delegates.Add(pointerDown);
+
+                            //Pointer Up (Stop Spamming)
+                            var pointerUp = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
+                            pointerUp.callback.AddListener(new Action<BaseEventData>((e) =>
+                            {
+                                ObservatoryHelpers.IsSniperHeld = false;
+                            }));
+                            trigger.delegates.Add(pointerUp);
+
+                            //Pointer Exit (Stop spamming)
+                            var pointerExit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+                            pointerExit.callback.AddListener(new Action<BaseEventData>((e) =>
+                            {
+                                ObservatoryHelpers.IsSniperHeld = false;
+                            }));
+                            trigger.delegates.Add(pointerExit);
                         }
                     }
                 }
@@ -67,7 +100,23 @@ namespace Fallen_LE_Mods.Improved_Observatory
                 if (configParent != null)
                 {
                     var searchBox = FallenUI.CreateSearchBox(configParent, "FallenProphecySearch", new Action<string>(ObservatoryHelpers.FilterStars));
-                    RectTransform rect = searchBox.GetComponent<RectTransform>();
+                    RectTransform? rect = searchBox?.GetComponent<RectTransform>();
+                    if (VersionChecker.UpdateAvailable && !string.IsNullOrEmpty(VersionChecker.LatestVersion))
+                    {
+                        var updateNotice = FallenUI.CreateUpdateNotice(configParent, VersionChecker.LatestVersion);
+                        RectTransform? updateRect = updateNotice?.GetComponent<RectTransform>();
+
+                        if (updateRect != null)
+                        {
+                            updateRect.SetParent(panel.transform, false);
+
+                            updateRect.anchorMin = new Vector2(1f, 0f);
+                            updateRect.anchorMax = new Vector2(1f, 0f);
+                            updateRect.pivot = new Vector2(1f, 0f);
+
+                            updateRect.anchoredPosition = new Vector2(-20f, 20f);
+                        }
+                    }
                     if (rect != null)
                     {
                         rect.anchorMin = new Vector2(0.5f, 1f);
@@ -92,14 +141,14 @@ namespace Fallen_LE_Mods.Improved_Observatory
                 if (__instance.IsNullOrDestroyed() || __instance.currentProphecy == null) return;
 
 
-                // We ensure we have a reference to the latest constellation stars
+                //ensure we have a reference to the latest constellation stars
                 var constellation = __instance.GetComponentInParent<Constellation>();
                 if (constellation != null)
                 {
                     AllRegionsStars[region] = constellation.ActiveStars;
                 }
 
-                // 2. Apply the filter with a 1-frame delay
+                //filter with a 1-frame delay
                 MelonCoroutines.Start(DelayedStarFilter(__instance));
             }
         }

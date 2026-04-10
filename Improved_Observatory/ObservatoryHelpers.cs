@@ -1,4 +1,6 @@
-﻿using Il2CppLE.Factions;
+﻿using System.Collections;
+using Fallen_LE_Mods.Shared;
+using Il2CppLE.Factions;
 using Il2CppRewired.Utils;
 using UnityEngine;
 using static Fallen_LE_Mods.Shared.FallenUtils;
@@ -7,10 +9,30 @@ namespace Fallen_LE_Mods.Improved_Observatory
 {
     public static class ObservatoryHelpers
     {
+        public static bool IsSniperHeld = false;
+        private const float AutoSnipeInitialDelay = 0.5f;
+        private const float AutoSnipeInterval = 0.2f;
+
+        public static IEnumerator AutoSnipeRoutine(ObservatoryUI panel)
+        {
+            IsSniperHeld = true;
+
+            yield return new WaitForSeconds(AutoSnipeInitialDelay);
+
+            while (IsSniperHeld)
+            {
+                if (panel.IsNullOrDestroyed() || !panel.gameObject.activeInHierarchy) break;
+
+                BuyFirstMatchOrReroll(panel);
+
+                yield return new WaitForSeconds(AutoSnipeInterval);
+            }
+        }
         public static void BuyFirstMatchOrReroll(ObservatoryUI panel)
         {
             if (panel.IsNullOrDestroyed()) return;
 
+            string currentQuery = ObservatoryManager.CurrentSearchQuery;
 
             if (ObservatoryManager.AllRegionsStars.TryGetValue(panel.CurrentRegion, out var stars) && stars != null)
             {
@@ -20,11 +42,20 @@ namespace Fallen_LE_Mods.Improved_Observatory
                 while (baseEnumerator.MoveNext())
                 {
                     var star = baseEnumerator.Current?.TryCast<ConstellationStar>();
-                    //Check if we have a match currently visible
-                    if (star != null && star.transform.localScale.x > 0.1f)
+                    if (star != null && star.button != null)
                     {
-                        if (star.button != null)
+
+                        bool isMatch = IsFuzzyMatch(currentQuery, star);
+
+                        if (isMatch)
                         {
+
+                            if (int.Parse(star.favorText.text) > GameReferencesCache.faction.Favor)
+                            {
+                                MakeNotification($"Too poor to buy {getStarReward(star)}");
+                                LogDebug($"[ObservatoryHelpers] Too poor to buy {getStarReward(star)}");
+                                return;
+                            }
                             LogDebug($"[ObservatoryHelpers] Match found: {getStarReward(star)}. Buying...");
                             star.button.Press();
                             return;
@@ -88,6 +119,7 @@ namespace Fallen_LE_Mods.Improved_Observatory
         {
             if (!ObservatoryManager.AllRegionsStars.TryGetValue(ObservatoryManager.ObservedRegion, out var stars) || stars == null) return;
 
+            ObservatoryManager.CurrentSearchQuery = query;
             var enumerator = stars.GetEnumerator();
             var baseEnumerator = enumerator.Cast<Il2CppSystem.Collections.IEnumerator>();
 
