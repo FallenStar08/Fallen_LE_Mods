@@ -3,7 +3,6 @@ using HarmonyLib;
 using Il2Cpp;
 using Il2CppItemFiltering;
 using MelonLoader;
-using UnityEngine;
 
 namespace Fallen_LE_Mods.Improved_Tooltips
 {
@@ -15,7 +14,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
         private static void HandleTooltipUpdate(ItemDataUnpacked item)
         {
             if (item == null) return;
-            if (item.LoreText == null) item.LoreText = "";
+            item.LoreText ??= "";
 
             if (item.LoreText.Contains(LoreMarker))
             {
