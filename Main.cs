@@ -19,6 +19,10 @@ namespace Fallen_LE_Mods
             _features.Add(new Fallen_LE_Mods.Auto_Enabler.ProximityFeature());
 #endif
 
+#if RELEASE
+            _features.Add(new Fallen_LE_Mods.Dev.QuickShatterFeature());
+#endif
+
             foreach (var feature in _features)
             {
                 feature.OnMelonInitialize();
