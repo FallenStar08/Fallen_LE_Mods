@@ -15,7 +15,7 @@ namespace Fallen_LE_Mods.Improved_Tooltips
         private static void HandleTooltipUpdate(ItemDataUnpacked item)
         {
             if (item == null) return;
-            item.LoreText ??= "";
+            if (item.LoreText == null) item.LoreText = "";
 
             if (item.LoreText.Contains(LoreMarker))
             {
@@ -105,13 +105,13 @@ namespace Fallen_LE_Mods.Improved_Tooltips
             }
         }
 
-        [HarmonyPatch(typeof(TooltipItemManager), "OpenItemTooltip", new Type[] { typeof(ItemDataUnpacked), typeof(TooltipItemManager.SlotType), typeof(Vector2), typeof(Vector3), typeof(GameObject), typeof(Vector2), })]
+        [HarmonyPatch(typeof(TooltipItemManager), "CreateTooltipContent", new Type[] { typeof(TooltipItemManager.ItemTooltipParameters) })]
         public class TooltipItemManagerPatch
         {
-            static void Prefix(ItemDataUnpacked data)
+            static void Prefix(TooltipItemManager.ItemTooltipParameters parameters)
             {
-                if (data == null) return;
-                HandleTooltipUpdate(data);
+                if (parameters == null) return;
+                HandleTooltipUpdate(parameters.Item);
             }
         }
     }
