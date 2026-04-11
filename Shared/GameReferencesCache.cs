@@ -24,7 +24,7 @@ namespace Fallen_LE_Mods.Shared
         public static CharacterDataTracker? characterDataTracker;
         public static AncientBonesTracker? boneTracker;
         public static Faction? faction;
-        //public static CraftingManager? craftingManager;
+        public static CraftingManager? craftingManager;
         public static void Postfix(ref LoadingScreen __instance)
         {
             itemFilterManager = FallenUtils.GetFilterManager;
@@ -40,7 +40,7 @@ namespace Fallen_LE_Mods.Shared
             boneTracker = PlayerFinder.getAncientBonesTracker();
             player = PlayerFinder.getPlayerActor();
             faction = player.factionInfo.GetFactions(true, true).First();
-            //craftingManager = ItemContainersManager.Instance.craftingManager;
+            craftingManager = ItemContainersManager.Instance.craftingManager;
         }
     }
 }
