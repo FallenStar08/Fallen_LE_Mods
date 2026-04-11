@@ -128,7 +128,9 @@ namespace Fallen_LE_Mods.Improved_Observatory
 
                     }
                 }
+                ClearInput(panel);
             }
+
         }
 
 
@@ -182,7 +184,15 @@ namespace Fallen_LE_Mods.Improved_Observatory
                 }
             }
         }
-
+        private static void ClearInput(ObservatoryUI panel)
+        {
+            var input = panel.gameObject.transform.Find("ObservatoryConfig/FallenProphecySearch")?.GetComponentInChildren<TMP_InputField>();
+            if (input != null)
+            {
+                input.text = "";
+                LogDebug($"[ObservatoryManager] Input Cleared");
+            }
+        }
         private static void OnRegionChanged(ObservatoryUI panel)
         {
             var input = panel.gameObject.transform.Find("ObservatoryConfig/FallenProphecySearch")?.GetComponentInChildren<TMP_InputField>();
