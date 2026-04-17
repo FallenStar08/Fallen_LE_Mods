@@ -128,7 +128,7 @@ namespace Fallen_LE_Mods.Improved_Observatory
 
                     }
                 }
-                ClearInput(panel);
+                //ClearInput(panel);
             }
 
         }
