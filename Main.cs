@@ -21,6 +21,7 @@ namespace Fallen_LE_Mods
 
 #if RELEASE
             _features.Add(new Fallen_LE_Mods.Dev.QuickShatterFeature());
+            _features.Add(new Fallen_LE_Mods.Dev.FallenMiscUIFeature());
 #endif
 
             foreach (var feature in _features)
@@ -46,8 +47,8 @@ namespace Fallen_LE_Mods
                 feature.OnMelonSceneLoaded(sceneName);
             }
 #if RELEASE
-            Fallen_LE_Mods.Dev.Cosmetics_Offline.OnSceneLoaded(buildIndex, sceneName);
 
+            Fallen_LE_Mods.Dev.Cosmetics_Offline.OnSceneLoaded(buildIndex, sceneName);
             if (pauseScenes.Contains(sceneName))
                 Fallen_LE_Mods.Dev.GameStatsTracker.Pause();
             else
