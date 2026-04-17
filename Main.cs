@@ -21,7 +21,6 @@ namespace Fallen_LE_Mods
 
 #if RELEASE
             _features.Add(new Fallen_LE_Mods.Dev.QuickShatterFeature());
-            _features.Add(new Fallen_LE_Mods.Dev.FallenMiscUIFeature());
 #endif
 
             foreach (var feature in _features)
