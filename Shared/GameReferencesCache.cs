@@ -21,10 +21,11 @@ namespace Fallen_LE_Mods.Shared
         public static Il2CppLE.Data.CharacterData? playerData;
         public static ExperienceTracker? expTracker;
         public static GoldTracker? goldTracker;
-        public static CharacterDataTracker? characterDataTracker;
+        public static CharacterDataTracker? playerDataTracker;
         public static AncientBonesTracker? boneTracker;
         public static Faction? faction;
         public static CraftingManager? craftingManager;
+        public static MaterialContainers? materialContainers;
         public static void Postfix(ref LoadingScreen __instance)
         {
             itemFilterManager = FallenUtils.GetFilterManager;
@@ -34,13 +35,14 @@ namespace Fallen_LE_Mods.Shared
             gameUiBase = UIBase.instance;
             //inventoryPanelUI = gameUiBase.inventoryPanel.instance.GetComponent<InventoryPanelUI>();
             playerData = PlayerFinder.getPlayerData();
-            characterDataTracker = PlayerFinder.getPlayerDataTracker();
+            playerDataTracker = PlayerFinder.getPlayerDataTracker();
             expTracker = PlayerFinder.getExperienceTracker();
             goldTracker = PlayerFinder.getLocalGoldTracker();
             boneTracker = PlayerFinder.getAncientBonesTracker();
             player = PlayerFinder.getPlayerActor();
             faction = player.factionInfo.GetFactions(true, true).First();
             craftingManager = ItemContainersManager.Instance.craftingManager;
+            materialContainers = ItemContainersManager.Instance.materials;
         }
     }
 }
