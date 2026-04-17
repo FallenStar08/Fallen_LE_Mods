@@ -74,38 +74,43 @@ namespace Fallen_LE_Mods.Improved_Observatory
             if (string.IsNullOrWhiteSpace(query)) return true;
             if (star == null || star.Pointer == IntPtr.Zero) return false;
 
-            //Split by space for AND logic
-            string[] keywords = query.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (keywords.Length == 0) return true;
+            var keywords = System.Text.RegularExpressions.Regex.Matches(query.ToLower(), @"(\w+):\""(.*?)""|\""(.*?)\""|(\S+)")
+                .Cast<System.Text.RegularExpressions.Match>()
+                .Select(m => m.Value)
+                .ToList();
 
-            string reward = (getStarReward(star) ?? "").ToLower();
-            string condition = (getStarCondition(star) ?? "").ToLower();
+            if (keywords.Count == 0) return true;
+
+            string reward = (getStarReward(star) ?? "").ToLower().Trim();
+            string condition = (getStarCondition(star) ?? "").ToLower().Trim();
             string combinedData = $"{reward} {condition}";
 
             foreach (var word in keywords)
             {
-                //NOT Logic (e.g. -word)
-                if (word.StartsWith("-") && word.Length > 1)
+                //Exact reward match
+                if (word.StartsWith("reward:\"") && word.EndsWith("\"") && word.Length >= 9)
+                {
+                    string exactValue = word.Substring(8, word.Length - 9);
+
+                    // Matches "idol" exactly OR "idol x5", "idol x10", etc
+                    // \b ensures we don't match "idolibobo" idk bro
+                    string pattern = $@"^{System.Text.RegularExpressions.Regex.Escape(exactValue)}(\s+x\d+)?$";
+
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(reward, pattern)) return false;
+                }
+                //NOT
+                else if (word.StartsWith("-") && word.Length > 1)
                 {
                     string excludeWord = word.Substring(1);
                     if (combinedData.Contains(excludeWord)) return false;
                 }
-                //OR Logic (e.g. word1|word2)
+                //OR
                 else if (word.Contains("|"))
                 {
                     string[] orParts = word.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                    bool anyMatch = false;
-                    foreach (var part in orParts)
-                    {
-                        if (combinedData.Contains(part))
-                        {
-                            anyMatch = true;
-                            break;
-                        }
-                    }
-                    if (!anyMatch) return false;
+                    if (!orParts.Any(part => combinedData.Contains(part))) return false;
                 }
-                //AND Logic (default, e.g. word)
+                //AND
                 else
                 {
                     if (!combinedData.Contains(word)) return false;
@@ -114,7 +119,6 @@ namespace Fallen_LE_Mods.Improved_Observatory
 
             return true;
         }
-
         public static void FilterStars(string query)
         {
             if (!ObservatoryManager.AllRegionsStars.TryGetValue(ObservatoryManager.ObservedRegion, out var stars) || stars == null) return;
