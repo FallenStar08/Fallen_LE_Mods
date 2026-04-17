@@ -21,6 +21,7 @@
             public const string Root = "GUI/Panel System/Panel Stacks/Full Screen Panel Stack/Observatory(Clone)";
             public const string Config = Root + "/ObservatoryConfig";
         }
+
     }
 
 

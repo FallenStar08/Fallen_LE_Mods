@@ -10,7 +10,6 @@ namespace Fallen_LE_Mods.Dev
 {
     public class QuickShatter : MelonMod
     {
-
         private static ItemDataUnpacked? _hoveredItem;
         private static GameObject? _opener;
 
@@ -30,33 +29,39 @@ namespace Fallen_LE_Mods.Dev
                         QuickShatterItem(_hoveredItem);
                     }
                 }
-
                 yield return null;
             }
         }
 
         public static void QuickShatterItem(ItemData item)
         {
-            Log("Attempting to shatter item: " + (item != null ? item.getAsUnpacked().FormatForLog() : "null"));
             if (item == null) return;
+            LogDebug("Attempting to shatter item: " + item.getAsUnpacked().FormatForLog());
             if (CheckCanShatter(item))
             {
-                Log("We Can shatter " + (item != null ? item.getAsUnpacked().FormatForLog() : "null"));
+                LogDebug("Conditions met. Shattering item...");
+
                 ShatterItem(item);
-                var container = _opener.GetComponentInChildren<InventoryContainerUI>()?.container;
+
+                DeducedRuneQuantity();
+
+                LogDebug($"{_opener.name} is the opener.");
+                var container = _opener?.GetComponentInChildren<InventoryContainerUI>()?.container;
+                LogDebug($"{container.Type} is the type of opener's container");
                 var content = container?.GetContent();
-
-                if (container != null)
+                LogDebug($"Container content count: {content?.Count}");
+                //Only works for player inv since we're the opener.
+                //Need to find a way to generalize to any container...
+                if (container != null && content != null)
                 {
-
-                    Log("Item container content found");
                     foreach (var entry in content)
                     {
                         if (entry.data.Equals(item))
                         {
-                            Log("Trying to delete matching Item");
+                            Log("Removing shattered item from inventory.");
                             container.TryRemoveItem(entry, 1, Context.CLEARING);
-                            return;
+
+                            break;
                         }
                     }
                 }
@@ -66,24 +71,56 @@ namespace Fallen_LE_Mods.Dev
         public static bool CheckCanShatter(ItemData item)
         {
             if (item == null) return false;
-            bool canShatter = item.isEquipment() && !item.isUniqueSetOrLegendary() && !item.isIdol() && !item.isIdolAltar() && !item.IsCorrupted();
+
+            if (GetRuneQuantity() < 1)
+            {
+                MakeNotification($"Not enough Runes to shatter!");
+                return false;
+            }
+
+            bool canShatter = item.isEquipment()
+                && !item.isUniqueSetOrLegendary()
+                && !item.isIdol()
+                && !item.isIdolAltar()
+                && !item.IsCorrupted();
+
             return canShatter;
         }
 
         public static void ShatterItem(ItemData item)
         {
             var manager = GameReferencesCache.craftingManager;
-            if (manager == null || item == null) return;
-
-
-            manager.Shatter(item, out _);
-
+            if (manager != null && item != null)
+            {
+                manager.Shatter(item, out _);
+            }
         }
 
-        [HarmonyPatch(typeof(TooltipItemManager), "OpenItemTooltip", new Type[] { typeof(ItemDataUnpacked), typeof(TooltipItemManager.SlotType), typeof(Vector2), typeof(Vector3), typeof(GameObject), typeof(Vector2), })]
+        private static int GetRuneQuantity(int index = 0)
+        {
+            var container = GameReferencesCache.materialContainers;
+            int runeQuantity = container != null ? container.RuneContainers[index].GetQuantity() : 0;
+            return runeQuantity;
+        }
+
+        private static int DeducedRuneQuantity(int quantity = 1, int index = 0)
+        {
+            var container = GameReferencesCache.materialContainers;
+            if (container != null)
+            {
+                var runeContainer = container.RuneContainers[index];
+                int currentQuantity = runeContainer.GetQuantity();
+                int newQuantity = Mathf.Max(0, currentQuantity - quantity);
+                runeContainer.content.Quantity = newQuantity;
+                return newQuantity;
+            }
+            return 0;
+        }
+
+        [HarmonyPatch(typeof(TooltipItemManager), "OpenItemTooltip", new Type[] { typeof(ItemDataUnpacked), typeof(TooltipItemManager.SlotType), typeof(Vector2), typeof(Vector3), typeof(GameObject), typeof(Vector2) })]
         public class TooltipItemManagerPatch
         {
-            static void Prefix(ItemDataUnpacked data, TooltipItemManager.SlotType type, Vector2 _offset, Vector3 position, GameObject opener, Vector2 openerSize = default(Vector2))
+            static void Postfix(ItemDataUnpacked data, TooltipItemManager.SlotType type, GameObject opener)
             {
                 if (data == null) return;
                 if (type != TooltipItemManager.SlotType.EQUIPPED)
@@ -91,7 +128,6 @@ namespace Fallen_LE_Mods.Dev
                     _opener = opener;
                     _hoveredItem = data;
                 }
-
             }
         }
 
@@ -104,6 +140,5 @@ namespace Fallen_LE_Mods.Dev
                 _opener = null;
             }
         }
-
     }
 }
