@@ -7,7 +7,6 @@ using Il2CppSystem.Linq;
 
 namespace Fallen_LE_Mods.Shared
 {
-    //Probably no need to refresh these on each load but idk...
     [HarmonyPatch(typeof(LoadingScreen), "Disable")]
     public class GameReferencesCache
     {
@@ -26,24 +25,40 @@ namespace Fallen_LE_Mods.Shared
         public static Faction? faction;
         public static CraftingManager? craftingManager;
         public static MaterialContainers? materialContainers;
-        public static void Postfix(ref LoadingScreen __instance)
+
+        public static void Postfix(LoadingScreen __instance)
         {
             itemFilterManager = FallenUtils.GetFilterManager;
             playerVisuals = PlayerFinder.getPlayerVisuals();
             itemContainersManager = ItemContainersManager.Instance;
-            playerStash = StashTabbedUIControls.instance.container.containers;
             gameUiBase = UIBase.instance;
-            //inventoryPanelUI = gameUiBase.inventoryPanel.instance.GetComponent<InventoryPanelUI>();
+
+            if (StashTabbedUIControls.instance?.container != null)
+            {
+                playerStash = StashTabbedUIControls.instance.container.containers;
+            }
+
             playerData = PlayerFinder.getPlayerData();
             playerDataTracker = PlayerFinder.getPlayerDataTracker();
             expTracker = PlayerFinder.getExperienceTracker();
             goldTracker = PlayerFinder.getLocalGoldTracker();
             boneTracker = PlayerFinder.getAncientBonesTracker();
             player = PlayerFinder.getPlayerActor();
-            faction = player.factionInfo.GetFactions(true, true).First();
-            craftingManager = ItemContainersManager.Instance.craftingManager;
-            materialContainers = ItemContainersManager.Instance.materials;
+
+            if (player?.factionInfo != null)
+            {
+                var factions = player.factionInfo.GetFactions(true, true);
+                if (factions != null && factions.Count() > 0)
+                {
+                    faction = factions.First();
+                }
+            }
+
+            if (ItemContainersManager.Instance != null)
+            {
+                craftingManager = ItemContainersManager.Instance.craftingManager;
+                materialContainers = ItemContainersManager.Instance.materials;
+            }
         }
     }
 }
-
