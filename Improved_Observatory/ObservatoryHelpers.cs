@@ -74,7 +74,7 @@ namespace Fallen_LE_Mods.Improved_Observatory
             if (string.IsNullOrWhiteSpace(query)) return true;
             if (star == null || star.Pointer == IntPtr.Zero) return false;
 
-            var keywords = System.Text.RegularExpressions.Regex.Matches(query.ToLower(), @"(\w+):\""(.*?)""|\""(.*?)\""|(\S+)")
+            var keywords = System.Text.RegularExpressions.Regex.Matches(query.ToLower(), @"(\w+):\""(.*?)""|quantity:(\d+)|\""(.*?)\""|(\S+)")
                 .Cast<System.Text.RegularExpressions.Match>()
                 .Select(m => m.Value)
                 .ToList();
@@ -87,16 +87,27 @@ namespace Fallen_LE_Mods.Improved_Observatory
 
             foreach (var word in keywords)
             {
-                //Exact reward match
-                if (word.StartsWith("reward:\"") && word.EndsWith("\"") && word.Length >= 9)
+                //Quantity Search (e.g. quantity:5)
+                if (word.StartsWith("quantity:") && word.Length > 9)
+                {
+                    string targetQty = word.Substring(9);
+                    var match = System.Text.RegularExpressions.Regex.Match(reward, @"x(\d+)$");
+
+                    if (!match.Success || match.Groups[1].Value != targetQty) return false;
+                }
+                //Exact Reward Match
+                else if (word.StartsWith("reward:\"") && word.EndsWith("\"") && word.Length >= 9)
                 {
                     string exactValue = word.Substring(8, word.Length - 9);
-
-                    // Matches "idol" exactly OR "idol x5", "idol x10", etc
-                    // \b ensures we don't match "idolibobo" idk bro
                     string pattern = $@"^{System.Text.RegularExpressions.Regex.Escape(exactValue)}(\s+x\d+)?$";
-
                     if (!System.Text.RegularExpressions.Regex.IsMatch(reward, pattern)) return false;
+                }
+                //Exact Match (General) probably useless
+                else if (word.StartsWith("\"") && word.EndsWith("\"") && word.Length >= 2)
+                {
+                    string exactWord = word.Substring(1, word.Length - 2);
+                    string pattern = $@"\b{System.Text.RegularExpressions.Regex.Escape(exactWord)}\b";
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(combinedData, pattern)) return false;
                 }
                 //NOT
                 else if (word.StartsWith("-") && word.Length > 1)
@@ -105,7 +116,7 @@ namespace Fallen_LE_Mods.Improved_Observatory
                     if (combinedData.Contains(excludeWord)) return false;
                 }
                 //OR
-                else if (word.Contains("|"))
+                else if (word.Contains('|'))
                 {
                     string[] orParts = word.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                     if (!orParts.Any(part => combinedData.Contains(part))) return false;
