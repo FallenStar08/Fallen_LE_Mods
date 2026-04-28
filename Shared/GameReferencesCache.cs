@@ -5,59 +5,89 @@ using Il2CppLE.Factions;
 using Il2CppLE.UI;
 using Il2CppSystem.Linq;
 
+
 namespace Fallen_LE_Mods.Shared
 {
+    public interface ILazyRef
+    {
+        void Reset();
+        void Prewarm();
+    }
+    public class LazyRef<T> : ILazyRef where T : class
+    {
+        private T? _value;
+        private readonly System.Func<T?> _fetcher;
+
+        public LazyRef(System.Func<T?> fetcher)
+        {
+            _fetcher = fetcher;
+            GameReferencesCache.Register(this);
+        }
+
+        public T? Value
+        {
+            get
+            {
+                _value ??= _fetcher();
+                return _value;
+            }
+        }
+
+        public void Reset()
+        {
+            _value = null;
+        }
+
+        public void Prewarm()
+        {
+            _ = Value;
+        }
+    }
+
     [HarmonyPatch(typeof(LoadingScreen), "Disable")]
     public class GameReferencesCache
     {
-        public static Actor? player;
-        public static ItemFilterManager? itemFilterManager;
-        public static ActorVisuals? playerVisuals;
-        public static ItemContainersManager? itemContainersManager;
-        public static Il2CppSystem.Collections.Generic.List<ItemContainer>? playerStash;
-        public static UIBase? gameUiBase;
-        public static InventoryPanelUI? inventoryPanelUI;
-        public static Il2CppLE.Data.CharacterData? playerData;
-        public static ExperienceTracker? expTracker;
-        public static GoldTracker? goldTracker;
-        public static CharacterDataTracker? playerDataTracker;
-        public static AncientBonesTracker? boneTracker;
-        public static Faction? faction;
-        public static CraftingManager? craftingManager;
-        public static MaterialContainers? materialContainers;
-
-        public static void Postfix(LoadingScreen __instance)
+        private static readonly List<ILazyRef> _registry = new();
+        public static void Register(ILazyRef lazyRef)
         {
-            itemFilterManager = FallenUtils.GetFilterManager;
-            playerVisuals = PlayerFinder.getPlayerVisuals();
-            itemContainersManager = ItemContainersManager.Instance;
-            gameUiBase = UIBase.instance;
+            _registry.Add(lazyRef);
+        }
 
-            if (StashTabbedUIControls.instance?.container != null)
+        public static readonly LazyRef<Actor> Player = new(() => PlayerFinder.getPlayerActor());
+        public static readonly LazyRef<ItemFilterManager> ItemFilterManager = new(() => FallenUtils.GetFilterManager);
+        public static readonly LazyRef<ActorVisuals> PlayerVisuals = new(() => PlayerFinder.getPlayerVisuals());
+        public static readonly LazyRef<ItemContainersManager> ItemContainersManager = new(() => Il2Cpp.ItemContainersManager.Instance);
+        public static readonly LazyRef<UIBase> GameUiBase = new(() => UIBase.instance);
+        public static readonly LazyRef<Il2CppLE.Data.CharacterData> PlayerData = new(() => PlayerFinder.getPlayerData());
+        public static readonly LazyRef<CharacterDataTracker> PlayerDataTracker = new(() => PlayerFinder.getPlayerDataTracker());
+        public static readonly LazyRef<ExperienceTracker> ExpTracker = new(() => PlayerFinder.getExperienceTracker());
+        public static readonly LazyRef<GoldTracker> GoldTracker = new(() => PlayerFinder.getLocalGoldTracker());
+        public static readonly LazyRef<AncientBonesTracker> BoneTracker = new(() => PlayerFinder.getAncientBonesTracker());
+
+        public static readonly LazyRef<Il2CppSystem.Collections.Generic.List<ItemContainer>> PlayerStash = new(() =>
+            StashTabbedUIControls.instance?.container?.containers);
+
+        public static readonly LazyRef<Faction> Faction = new(() =>
+        {
+            var p = Player.Value;
+            if (p?.factionInfo == null) return null;
+            var factions = p.factionInfo.GetFactions(true, true);
+            return (factions != null && factions.Count() > 0) ? factions.First() : null;
+        });
+
+        public static readonly LazyRef<CraftingManager> CraftingManager = new(() =>
+            Il2Cpp.ItemContainersManager.Instance?.craftingManager);
+
+        public static readonly LazyRef<MaterialContainers> MaterialContainers = new(() =>
+            Il2Cpp.ItemContainersManager.Instance?.materials);
+
+        [HarmonyPostfix]
+        public static void Postfix()
+        {
+            foreach (var lazyRef in _registry)
             {
-                playerStash = StashTabbedUIControls.instance.container.containers;
-            }
-
-            playerData = PlayerFinder.getPlayerData();
-            playerDataTracker = PlayerFinder.getPlayerDataTracker();
-            expTracker = PlayerFinder.getExperienceTracker();
-            goldTracker = PlayerFinder.getLocalGoldTracker();
-            boneTracker = PlayerFinder.getAncientBonesTracker();
-            player = PlayerFinder.getPlayerActor();
-
-            if (player?.factionInfo != null)
-            {
-                var factions = player.factionInfo.GetFactions(true, true);
-                if (factions != null && factions.Count() > 0)
-                {
-                    faction = factions.First();
-                }
-            }
-
-            if (ItemContainersManager.Instance != null)
-            {
-                craftingManager = ItemContainersManager.Instance.craftingManager;
-                materialContainers = ItemContainersManager.Instance.materials;
+                lazyRef.Reset();
+                lazyRef.Prewarm();
             }
         }
     }
