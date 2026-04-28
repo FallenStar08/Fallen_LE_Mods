@@ -58,8 +58,20 @@ namespace Fallen_LE_Mods.Dev
         }
     }
 
+    [HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmber")]
+    public class DropMemoryAmberHandler : MelonMod
+    {
+        public static void Prefix(ref UnityEngine.Vector3 position, uint quantity, PickupableObjectCondition condition)
+        {
+            if (GameReferencesCache.player == null) return;
+            Vector3 playerPosition = GameReferencesCache.player.position();
+            position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
+
+        }
+    }
+
     [HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmberAfterDelay")]
-    public class MemoryAmberHandler : MelonMod
+    public class DropMemoryAmberAfterDelayHandler : MelonMod
     {
         public static void Prefix(ref UnityEngine.Vector3 position, uint quantity, float delay, PickupableObjectCondition condition)
         {
