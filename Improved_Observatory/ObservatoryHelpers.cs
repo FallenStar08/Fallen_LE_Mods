@@ -31,6 +31,8 @@ namespace Fallen_LE_Mods.Improved_Observatory
         public static void BuyFirstMatchOrReroll(ObservatoryUI panel)
         {
             if (panel.IsNullOrDestroyed()) return;
+            var currentFaction = GameReferencesCache.Faction.Value;
+            if (currentFaction == null) return;
 
             string currentQuery = ObservatoryManager.CurrentSearchQuery;
 
@@ -50,7 +52,7 @@ namespace Fallen_LE_Mods.Improved_Observatory
                         if (isMatch)
                         {
 
-                            if (int.Parse(star.favorText.text) > GameReferencesCache.faction.Favor)
+                            if (int.Parse(star.favorText.text) > currentFaction.Favor)
                             {
                                 MakeNotification($"Too poor to buy {getStarReward(star)}");
                                 LogDebug($"[ObservatoryHelpers] Too poor to buy {getStarReward(star)}");

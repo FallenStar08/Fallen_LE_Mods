@@ -45,9 +45,9 @@ namespace Fallen_LE_Mods.Dev
 
                 DeducedRuneQuantity();
 
-                LogDebug($"{_opener.name} is the opener.");
+                LogDebug($"{_opener?.name} is the opener.");
                 var container = _opener?.GetComponentInChildren<InventoryContainerUI>()?.container;
-                LogDebug($"{container.Type} is the type of opener's container");
+                LogDebug($"{container?.Type} is the type of opener's container");
                 var content = container?.GetContent();
                 LogDebug($"Container content count: {content?.Count}");
                 //Only works for player inv since we're the opener.
@@ -89,7 +89,7 @@ namespace Fallen_LE_Mods.Dev
 
         public static void ShatterItem(ItemData item)
         {
-            var manager = GameReferencesCache.craftingManager;
+            var manager = GameReferencesCache.CraftingManager.Value;
             if (manager != null && item != null)
             {
                 manager.Shatter(item, out _);
@@ -98,14 +98,14 @@ namespace Fallen_LE_Mods.Dev
 
         private static int GetRuneQuantity(int index = 0)
         {
-            var container = GameReferencesCache.materialContainers;
+            var container = GameReferencesCache.MaterialContainers.Value;
             int runeQuantity = container != null ? container.RuneContainers[index].GetQuantity() : 0;
             return runeQuantity;
         }
 
         private static int DeducedRuneQuantity(int quantity = 1, int index = 0)
         {
-            var container = GameReferencesCache.materialContainers;
+            var container = GameReferencesCache.MaterialContainers.Value;
             if (container != null)
             {
                 var runeContainer = container.RuneContainers[index];

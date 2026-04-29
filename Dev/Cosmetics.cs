@@ -32,7 +32,7 @@ public class Cosmetics_Offline : MonoBehaviour
 
     private void TryDisableCosmeticsUI()
     {
-        var cosmeticsBtn = GameReferencesCache.gameUiBase?.bottomScreenMenu?
+        var cosmeticsBtn = GameReferencesCache.GameUiBase.Value?.bottomScreenMenu?
             .gameObject.GetChildByName("BottomScreenMenuPanel")?
             .GetChildByName("Cosmetics");
 

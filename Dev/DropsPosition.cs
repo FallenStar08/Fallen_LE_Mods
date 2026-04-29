@@ -39,8 +39,8 @@ namespace Fallen_LE_Mods.Dev
 
         public static bool Prefix(GroundItemManager __instance, Actor player, int goldValue, ref Vector3 location, ref bool playDropSound)
         {
-            if (GameReferencesCache.goldTracker == null) return true;
-            GameReferencesCache.goldTracker.modifyGold(goldValue);
+            if (GameReferencesCache.GoldTracker.Value == null) return true;
+            GameReferencesCache.GoldTracker.Value.modifyGold(goldValue);
             playDropSound = false;
             return false;
 
@@ -51,8 +51,8 @@ namespace Fallen_LE_Mods.Dev
     {
         public static void Prefix(GroundItemManager __instance, Actor player, int experience, ref Vector3 location, bool playDropSound)
         {
-            if (GameReferencesCache.player == null) return;
-            Vector3 playerPosition = GameReferencesCache.player.position();
+            if (GameReferencesCache.Player.Value == null) return;
+            Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
 
         }
@@ -63,8 +63,8 @@ namespace Fallen_LE_Mods.Dev
     {
         public static void Prefix(ref UnityEngine.Vector3 position, uint quantity, PickupableObjectCondition condition)
         {
-            if (GameReferencesCache.player == null) return;
-            Vector3 playerPosition = GameReferencesCache.player.position();
+            if (GameReferencesCache.Player.Value == null) return;
+            Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
 
         }
@@ -75,8 +75,8 @@ namespace Fallen_LE_Mods.Dev
     {
         public static void Prefix(ref UnityEngine.Vector3 position, uint quantity, float delay, PickupableObjectCondition condition)
         {
-            if (GameReferencesCache.player == null) return;
-            Vector3 playerPosition = GameReferencesCache.player.position();
+            if (GameReferencesCache.Player.Value == null) return;
+            Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
 
         }
@@ -87,8 +87,8 @@ namespace Fallen_LE_Mods.Dev
     {
         public static void Prefix(ref UnityEngine.Vector3 position, int piles, int corruption, float quantityModifier)
         {
-            if (GameReferencesCache.player == null) return;
-            Vector3 playerPosition = GameReferencesCache.player.position();
+            if (GameReferencesCache.Player.Value == null) return;
+            Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
 
         }
@@ -101,8 +101,8 @@ namespace Fallen_LE_Mods.Dev
     {
         public static bool Prefix(GroundItemManager __instance, Actor player, int amount, ref UnityEngine.Vector3 location, ref bool playDropSound, ref bool randomiseLocation)
         {
-            if (GameReferencesCache.boneTracker == null) return true;
-            GameReferencesCache.boneTracker.modifyAncientBones(amount);
+            if (GameReferencesCache.BoneTracker.Value == null) return true;
+            GameReferencesCache.BoneTracker.Value.modifyAncientBones(amount);
             playDropSound = false;
             randomiseLocation = false;
             return false;
@@ -115,10 +115,10 @@ namespace Fallen_LE_Mods.Dev
     {
         public static bool Prefix(GroundItemManager __instance, Actor player, int favor, ref Vector3 location, ref bool playDropSound, ref bool randomiseLocation)
         {
-            if (GameReferencesCache.player == null || GameReferencesCache.faction == null) return true;
-            Vector3 playerPosition = GameReferencesCache.player.position();
+            if (GameReferencesCache.Player.Value == null || GameReferencesCache.Faction.Value == null) return true;
+            Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
-            GameReferencesCache.faction.GainFavor(favor);
+            GameReferencesCache.Faction.Value.GainFavor(favor);
             playDropSound = false;
             randomiseLocation = false;
             return false;

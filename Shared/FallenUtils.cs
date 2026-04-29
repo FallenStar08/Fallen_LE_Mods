@@ -64,14 +64,14 @@ namespace Fallen_LE_Mods.Shared
         {
             if (_item == null) return null;
 
-            var filterManager = GameReferencesCache.itemFilterManager;
+            var filterManager = GameReferencesCache.ItemFilterManager.Value;
             if (filterManager == null || filterManager.Filter == null || filterManager.Filter.rules == null)
             {
                 return null;
             }
 
             var rules = filterManager.Filter.rules;
-            int level = (GameReferencesCache.expTracker != null) ? GameReferencesCache.expTracker.CurrentLevel : 0;
+            int level = (GameReferencesCache.ExpTracker.Value != null) ? GameReferencesCache.ExpTracker.Value.CurrentLevel : 0;
 
             if (!GetHighest)
             {
@@ -101,12 +101,12 @@ namespace Fallen_LE_Mods.Shared
 
         public static ItemDataUnpacked? FindSimilarUniqueItemInStash(ItemDataUnpacked _item, bool preferWW)
         {
-            if (!_item.isUniqueSetOrLegendary() || GameReferencesCache.playerStash == null) return null;
+            if (!_item.isUniqueSetOrLegendary() || GameReferencesCache.PlayerStash.Value == null) return null;
 
             ItemDataUnpacked? bestMatch = null;
             int bestValue = -1;
 
-            foreach (ItemContainer stashtab in GameReferencesCache.playerStash)
+            foreach (ItemContainer stashtab in GameReferencesCache.PlayerStash.Value)
             {
                 foreach (ItemContainerEntry itemEntry in stashtab.content)
                 {

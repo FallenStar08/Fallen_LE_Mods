@@ -3,6 +3,7 @@ using Fallen_LE_Mods.Shared;
 using Fallen_LE_Mods.Shared.UI;
 using HarmonyLib;
 using Il2Cpp;
+using Il2CppStreamChat.Libs.Utils;
 using MelonLoader;
 using UnityEngine;
 using static Fallen_LE_Mods.Shared.FallenUtils;
@@ -90,12 +91,13 @@ namespace Fallen_LE_Mods.Auto_Enabler
             var header = FallenUI.CreateHeader(container, $"Fallen's Proximity Manager v{BuildInfo.Version}", "ProxHeader");
             if (VersionChecker.UpdateAvailable)
             {
-                FallenUI.CreateUpdateNotice(container, VersionChecker.LatestVersion);
+                string newVersion = VersionChecker.LatestVersion.IsNullOrEmpty() ? "couldn't find new version" : VersionChecker.LatestVersion!;
+                FallenUI.CreateUpdateNotice(container, newVersion);
             }
             if (header == null) return;
 
-            FallenUI.CreateToggle(container, "Show Proximity Rings", "Visual colored circles around shrines and chests.", _prefShowRings);
-            FallenUI.CreateSlider(container, "Activation Radius", "Distance at which proximity activation occurs.", 1f, 10f, _prefDistance);
+            FallenUI.CreateToggle(container, "Show Proximity Rings", "Visual colored circles around shrines and chests.", _prefShowRings!);
+            FallenUI.CreateSlider(container, "Activation Radius", "Distance at which proximity activation occurs.", 1f, 10f, _prefDistance!);
 
             // Sub-Filters
             FallenUI.CreateHeader(container, "Auto-Activation Filters", "ProxFilters", FallenColors.GhostWhite);
@@ -120,7 +122,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
         {
             if (_ringTemplate == null) return;
             var lr = _ringTemplate.GetComponent<LineRenderer>();
-            if (lr != null) lr.material.color = _prefColor.Value;
+            if (lr != null) lr.material.color = _prefColor!.Value;
         }
 
         private static GameObject? _ringTemplate;
@@ -312,8 +314,8 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
                 if (playerTrans == null || playerTrans.Pointer == IntPtr.Zero)
                 {
-                    if (GameReferencesCache.player != null)
-                        playerTrans = GameReferencesCache.player.gameObject.transform;
+                    if (GameReferencesCache.Player.Value != null)
+                        playerTrans = GameReferencesCache.Player.Value.gameObject.transform;
                 }
 
                 if (playerTrans != null)
