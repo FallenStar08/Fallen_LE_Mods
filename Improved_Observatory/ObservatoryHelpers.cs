@@ -55,10 +55,10 @@ namespace Fallen_LE_Mods.Improved_Observatory
                             if (int.Parse(star.favorText.text) > currentFaction.Favor)
                             {
                                 MakeNotification($"Too poor to buy {getStarReward(star)}");
-                                LogDebug($"[ObservatoryHelpers] Too poor to buy {getStarReward(star)}");
+                                LogDebug($"Too poor to buy {getStarReward(star)}");
                                 return;
                             }
-                            LogDebug($"[ObservatoryHelpers] Match found: {getStarReward(star)}. Buying...");
+                            LogDebug($"Match found: {getStarReward(star)}. Buying...");
                             star.button.Press();
                             return;
                         }
@@ -67,7 +67,7 @@ namespace Fallen_LE_Mods.Improved_Observatory
             }
 
             //Fallback -> no match was found, trigger a manual Reroll
-            LogDebug("[ObservatoryHelpers] No match found. Rerolling region...");
+            LogDebug("No match found. Rerolling region...");
             panel.RerollCurrentRegion();
         }
 

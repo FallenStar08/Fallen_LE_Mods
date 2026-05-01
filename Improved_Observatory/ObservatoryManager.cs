@@ -190,7 +190,7 @@ namespace Fallen_LE_Mods.Improved_Observatory
             if (input != null)
             {
                 input.text = "";
-                LogDebug($"[ObservatoryManager] Input Cleared");
+                LogDebug($"Input Cleared");
             }
         }
         private static void OnRegionChanged(ObservatoryUI panel)
@@ -199,7 +199,7 @@ namespace Fallen_LE_Mods.Improved_Observatory
             if (input != null)
             {
                 input.text = "";
-                LogDebug($"[ObservatoryManager] Region changed to {ObservedRegion}, clearing search.");
+                LogDebug($"Region changed to {ObservedRegion}, clearing search.");
             }
         }
 

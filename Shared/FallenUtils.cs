@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Il2Cpp;
 using Il2CppItemFiltering;
 using MelonLoader;
@@ -20,9 +21,13 @@ namespace Fallen_LE_Mods.Shared
         }
 
         [Conditional("RELEASE")]
-        public static void LogDebug(string msg)
+        public static void LogDebug(string msg,
+        [CallerMemberName] string methodName = "",
+        [CallerFilePath] string filePath = "")
         {
-            Melon<MyMod>.Logger.Msg(msg);
+            string className = System.IO.Path.GetFileNameWithoutExtension(filePath);
+
+            Melon<MyMod>.Logger.Msg($"[{className}.{methodName}] {msg}");
         }
 
         public static void MakeNotification(string msg)
