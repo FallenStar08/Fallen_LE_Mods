@@ -14,7 +14,18 @@ namespace Fallen_LE_Mods.Shared
     public static class FallenUtils
     {
         public static HarmonyLib.Harmony? Harmony;
-
+        public static void Warning(string msg)
+        {
+            Melon<MyMod>.Logger.Warning(msg);
+        }
+        public static void BigError(string msg)
+        {
+            Melon<MyMod>.Logger.BigError(msg);
+        }
+        public static void Error(string msg)
+        {
+            Melon<MyMod>.Logger.Error(msg);
+        }
         public static void Log(string msg)
         {
             Melon<MyMod>.Logger.Msg(msg);

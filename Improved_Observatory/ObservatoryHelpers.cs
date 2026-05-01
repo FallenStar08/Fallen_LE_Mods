@@ -31,8 +31,8 @@ namespace Fallen_LE_Mods.Improved_Observatory
         public static void BuyFirstMatchOrReroll(ObservatoryUI panel)
         {
             if (panel.IsNullOrDestroyed()) return;
-            var currentFaction = GameReferencesCache.Faction.Value;
-            if (currentFaction == null) return;
+            var currentFaction = GameReferencesCache.CircleOfFortune.Value;
+            if (currentFaction == null) { Error("Faction is null, report this to the dev I guess?"); return; }
 
             string currentQuery = ObservatoryManager.CurrentSearchQuery;
 

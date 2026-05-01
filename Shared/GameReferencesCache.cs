@@ -67,12 +67,24 @@ namespace Fallen_LE_Mods.Shared
         public static readonly LazyRef<Il2CppSystem.Collections.Generic.List<ItemContainer>> PlayerStash = new(() =>
             StashTabbedUIControls.instance?.container?.containers);
 
-        public static readonly LazyRef<Faction> Faction = new(() =>
+        public static readonly LazyRef<Faction> CircleOfFortune = new(() =>
         {
             var p = Player.Value;
             if (p?.factionInfo == null) return null;
+
             var factions = p.factionInfo.GetFactions(true, true);
-            return (factions != null && factions.Count() > 0) ? factions.First() : null;
+            if (factions == null) return null;
+
+            for (int i = 0; i < factions.Count(); i++)
+            {
+                var f = factions.ElementAt(i);
+                if (f != null && f.ID == FactionID.CircleOfFortune)
+                {
+                    return f;
+                }
+            }
+
+            return null;
         });
 
         public static readonly LazyRef<CraftingManager> CraftingManager = new(() =>
