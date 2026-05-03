@@ -14,17 +14,29 @@ namespace Fallen_LE_Mods.Shared
     public static class FallenUtils
     {
         public static HarmonyLib.Harmony? Harmony;
-        public static void Warning(string msg)
+        public static void Warning(string msg,
+                [CallerMemberName] string methodName = "",
+                [CallerFilePath] string filePath = "")
         {
-            Melon<MyMod>.Logger.Warning(msg);
+            string className = System.IO.Path.GetFileNameWithoutExtension(filePath);
+
+            Melon<MyMod>.Logger.Warning($"[{className}.{methodName}] {msg}");
         }
-        public static void BigError(string msg)
+        public static void BigError(string msg,
+        [CallerMemberName] string methodName = "",
+        [CallerFilePath] string filePath = "")
         {
-            Melon<MyMod>.Logger.BigError(msg);
+            string className = System.IO.Path.GetFileNameWithoutExtension(filePath);
+
+            Melon<MyMod>.Logger.BigError($"[{className}.{methodName}] {msg}");
         }
-        public static void Error(string msg)
+        public static void Error(string msg,
+        [CallerMemberName] string methodName = "",
+        [CallerFilePath] string filePath = "")
         {
-            Melon<MyMod>.Logger.Error(msg);
+            string className = System.IO.Path.GetFileNameWithoutExtension(filePath);
+
+            Melon<MyMod>.Logger.Error($"[{className}.{methodName}] {msg}");
         }
         public static void Log(string msg)
         {
@@ -48,15 +60,12 @@ namespace Fallen_LE_Mods.Shared
 
         public static void IncrementOrInitialize(Dictionary<string, int> dict, string key)
         {
-            // Try to get the value for the key
             if (dict.TryGetValue(key, out int value))
             {
-                // Key exists, increment the value
                 dict[key]++;
             }
             else
             {
-                // Key doesn't exist, initialize it to 1
                 dict[key] = 1;
             }
         }

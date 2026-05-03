@@ -30,9 +30,18 @@ namespace Fallen_LE_Mods.Improved_Observatory
         }
         public static void BuyFirstMatchOrReroll(ObservatoryUI panel)
         {
-            if (panel.IsNullOrDestroyed()) return;
+            if (panel.IsNullOrDestroyed() || panel.gameObject == null)
+            {
+                Error("Panel is null, report this to the dev I guess?");
+                return;
+            }
+
             var currentFaction = GameReferencesCache.CircleOfFortune.Value;
-            if (currentFaction == null) { Error("Faction is null, report this to the dev I guess?"); return; }
+            if (currentFaction == null)
+            {
+                Error("Faction is null, report this to the dev I guess?");
+                return;
+            }
 
             string currentQuery = ObservatoryManager.CurrentSearchQuery;
 
