@@ -70,13 +70,36 @@ namespace Fallen_LE_Mods.Shared
         public static readonly LazyRef<Faction> CircleOfFortune = new(() =>
         {
             var p = Player.Value;
-            if (p?.factionInfo == null) return null;
 
-            var factions = p.factionInfo.GetFactions(true, true);
-            if (factions == null) return null;
+            if (p == null)
+            {
+                FallenUtils.Error("Player is null? We're kinda VERY cooked here");
+                return null;
+            }
+            if (p?.factionInfo == null)
+            {
+                FallenUtils.Error("p.factionInfo is null? We're kinda cooked here");
+                return null;
+            }
+
+            var factions = p.factionInfo.GetFactions();
+
+            var enumValues = Enum.GetValues(typeof(FactionID));
+            foreach (FactionID v in enumValues)
+            {
+                FallenUtils.Log($"Faction : {v} State : {(p.FactionInfo.IsMemberOf(v) ? "joined" : "not joined")}");
+            }
+
+
+            if (factions == null)
+            {
+                FallenUtils.Error("No faction in player.factionInfo");
+                return null;
+            }
 
             for (int i = 0; i < factions.Count(); i++)
             {
+
                 var f = factions.ElementAt(i);
                 if (f != null && f.ID == FactionID.CircleOfFortune)
                 {
