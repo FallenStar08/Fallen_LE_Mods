@@ -115,10 +115,10 @@ namespace Fallen_LE_Mods.Dev
     {
         public static bool Prefix(GroundItemManager __instance, Actor player, int favor, ref Vector3 location, ref bool playDropSound, ref bool randomiseLocation)
         {
-            if (GameReferencesCache.Player.Value == null || GameReferencesCache.Faction.Value == null) return true;
+            if (GameReferencesCache.Player.Value == null || GameReferencesCache.CircleOfFortune.Value == null) return true;
             Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
-            GameReferencesCache.Faction.Value.GainFavor(favor);
+            GameReferencesCache.CircleOfFortune.Value.GainFavor(favor);
             playDropSound = false;
             randomiseLocation = false;
             return false;
