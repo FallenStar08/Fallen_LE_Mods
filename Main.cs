@@ -1,11 +1,13 @@
 ﻿using Fallen_LE_Mods.Shared;
 using Fallen_LE_Mods.Shared.UI;
+using Il2CppLE.Data;
 using MelonLoader;
 
 namespace Fallen_LE_Mods
 {
     public class MyMod : MelonMod
     {
+        private bool _onlineAnnoyed = false;
         private readonly List<IFallenFeature> _features = new();
         public override void OnInitializeMelon()
         {
@@ -41,6 +43,31 @@ namespace Fallen_LE_Mods
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
+            if (Scenes.IsGameScene())
+            {
+                if (GameReferencesCache.Player.Value)
+                {
+                    CharacterData? charData = GameReferencesCache.Player.Value.TryGetCharacterData(out var data) ? data : GameReferencesCache.Player.Value.GetCharacterDataTracker()?.charData;
+
+                    bool gotCharData = charData != null;
+
+                    if (gotCharData)
+                    {
+                        FallenUtils.LogDebug($"Online state : {(charData.IsOffline ? "offline" : "online ")}");
+                        if (!charData.IsOffline & !_onlineAnnoyed)
+                        {
+                            FallenUtils.Error("You're playing in Online Mode buckaroo, this isn't a good idea. (I ain't stopping you tho)");
+                            _onlineAnnoyed = true;
+                        }
+                    }
+                    else
+                    {
+                        FallenUtils.Error("Couldn't get CharData we're cooked I guess?");
+                    }
+                }
+            }
+
+
             foreach (var feature in _features)
             {
                 feature.OnMelonSceneLoaded(sceneName);
