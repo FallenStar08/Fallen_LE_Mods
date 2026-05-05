@@ -1,5 +1,6 @@
 ﻿using Fallen_LE_Mods.Shared;
 using Fallen_LE_Mods.Shared.UI;
+using Il2Cpp;
 using Il2CppLE.Data;
 using MelonLoader;
 
@@ -45,15 +46,16 @@ namespace Fallen_LE_Mods
         {
             if (Scenes.IsGameScene())
             {
-                if (GameReferencesCache.Player.Value)
+                var player = GameReferencesCache.Player.Value;
+                if (player.IsNotNullOrDestroyed())
                 {
-                    CharacterData? charData = GameReferencesCache.Player.Value.TryGetCharacterData(out var data) ? data : GameReferencesCache.Player.Value.GetCharacterDataTracker()?.charData;
+                    CharacterData? charData = player!.TryGetCharacterData(out var data)
+                        ? data
+                        : player.GetCharacterDataTracker()?.charData;
 
-                    bool gotCharData = charData != null;
-
-                    if (gotCharData)
+                    if (charData != null)
                     {
-                        FallenUtils.LogDebug($"Online state : {(charData.IsOffline ? "offline" : "online ")}");
+                        FallenUtils.LogDebug($"Online state : {(charData!.IsOffline ? "offline" : "online ")}");
                         if (!charData.IsOffline & !_onlineAnnoyed)
                         {
                             FallenUtils.Error("You're playing in Online Mode buckaroo, this isn't a good idea. (I ain't stopping you tho)");
@@ -62,7 +64,7 @@ namespace Fallen_LE_Mods
                     }
                     else
                     {
-                        FallenUtils.Error("Couldn't get CharData we're cooked I guess?");
+                        FallenUtils.LogDebug("Couldn't get CharData");
                     }
                 }
             }
