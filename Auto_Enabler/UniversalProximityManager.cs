@@ -3,7 +3,6 @@ using Fallen_LE_Mods.Shared;
 using Fallen_LE_Mods.Shared.UI;
 using HarmonyLib;
 using Il2Cpp;
-using Il2CppStreamChat.Libs.Utils;
 using MelonLoader;
 using UnityEngine;
 using static Fallen_LE_Mods.Shared.FallenUtils;
@@ -12,7 +11,6 @@ namespace Fallen_LE_Mods.Auto_Enabler
 {
     public static class UniversalProximityManager
     {
-
         public static MelonPreferences_Category? _category;
         public static MelonPreferences_Entry<bool>? _prefShowRings;
         public static MelonPreferences_Entry<float>? _prefDistance;
@@ -26,6 +24,7 @@ namespace Fallen_LE_Mods.Auto_Enabler
         private const float LINE_WIDTH = 0.12f;
         private const float RING_Y_OFFSET = 0.15f;
         private static readonly int FloorMask = (1 << 0) | (1 << 11) | (1 << 14);
+
         private struct TrackedObject
         {
             public long PtrAddr;
@@ -52,24 +51,33 @@ namespace Fallen_LE_Mods.Auto_Enabler
             { "Cache Click Listener", "Cache" },
             { "void portal", "Void Portal" },
             { "Rune Prison Visuals", "Rune Prison" },
-            { "Time Beast Rift Visuals", "Time Beast Rift" }
+            { "Time Beast Rift Visuals", "Time Beast Rift" },
         };
 
         public static void Initialize()
         {
-            if (running) return;
+            if (running)
+                return;
 
             _category = MelonPreferences.CreateCategory("ProximityManager", "Proximity Manager");
             _category.SetFilePath("UserData/FallenProximity.cfg");
             _prefShowRings = _category.CreateEntry("ShowRings", true, "Show Visual Rings");
             _prefDistance = _category.CreateEntry("Distance", 5.0f, "Activation Distance");
-            _prefColor = _category.CreateEntry("RingColor", new Color(0.1f, 0.8f, 1f, 0.5f), "Ring Color");
+            _prefColor = _category.CreateEntry(
+                "RingColor",
+                new Color(0.1f, 0.8f, 1f, 0.5f),
+                "Ring Color"
+            );
 
             foreach (var val in TargetKeywords.Values)
             {
                 if (!TypeToggles.ContainsKey(val))
                 {
-                    var entry = _category.CreateEntry($"Enable_{val.Replace(" ", "")}", true, $"Enable {val}");
+                    var entry = _category.CreateEntry(
+                        $"Enable_{val.Replace(" ", "")}",
+                        true,
+                        $"Enable {val}"
+                    );
                     TypeToggles.Add(val, entry);
                 }
             }
@@ -88,22 +96,51 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static void DrawProximitySettings(Transform container)
         {
-            var header = FallenUI.CreateHeader(container, $"Fallen's Proximity Manager v{BuildInfo.Version}", "ProxHeader");
+            var header = FallenUI.CreateHeader(
+                container,
+                $"Fallen's Proximity Manager v{BuildInfo.Version}",
+                "ProxHeader"
+            );
             if (VersionChecker.UpdateAvailable)
             {
-                string newVersion = VersionChecker.LatestVersion.IsNullOrEmpty() ? "couldn't find new version" : VersionChecker.LatestVersion!;
+                string newVersion = string.IsNullOrEmpty(VersionChecker.LatestVersion)
+                    ? "couldn't find new version"
+                    : VersionChecker.LatestVersion!;
                 FallenUI.CreateUpdateNotice(container, newVersion);
             }
-            if (header == null) return;
+            if (header == null)
+                return;
 
-            FallenUI.CreateToggle(container, "Show Proximity Rings", "Visual colored circles around shrines and chests.", _prefShowRings!);
-            FallenUI.CreateSlider(container, "Activation Radius", "Distance at which proximity activation occurs.", 1f, 10f, _prefDistance!);
+            FallenUI.CreateToggle(
+                container,
+                "Show Proximity Rings",
+                "Visual colored circles around shrines and chests.",
+                _prefShowRings!
+            );
+            FallenUI.CreateSlider(
+                container,
+                "Activation Radius",
+                "Distance at which proximity activation occurs.",
+                1f,
+                10f,
+                _prefDistance!
+            );
 
             // Sub-Filters
-            FallenUI.CreateHeader(container, "Auto-Activation Filters", "ProxFilters", FallenColors.GhostWhite);
+            FallenUI.CreateHeader(
+                container,
+                "Auto-Activation Filters",
+                "ProxFilters",
+                FallenColors.GhostWhite
+            );
             foreach (var entry in TypeToggles)
             {
-                FallenUI.CreateToggle(container, $"Auto-Activate {entry.Key}s", $"Enable or disable proximity activation for {entry.Key} objects.", entry.Value);
+                FallenUI.CreateToggle(
+                    container,
+                    $"Auto-Activate {entry.Key}s",
+                    $"Enable or disable proximity activation for {entry.Key} objects.",
+                    entry.Value
+                );
             }
         }
 
@@ -114,22 +151,26 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
             foreach (var obj in activeObjects)
             {
-                if (obj.VisualRing != null) UpdateRingPoints(obj.VisualRing, obj.Name);
+                if (obj.VisualRing != null)
+                    UpdateRingPoints(obj.VisualRing, obj.Name);
             }
         }
 
         private static void UpdateTemplateVisuals()
         {
-            if (_ringTemplate == null) return;
+            if (_ringTemplate == null)
+                return;
             var lr = _ringTemplate.GetComponent<LineRenderer>();
-            if (lr != null) lr.material.color = _prefColor!.Value;
+            if (lr != null)
+                lr.material.color = _prefColor!.Value;
         }
 
         private static GameObject? _ringTemplate;
 
         private static void CreateTemplate()
         {
-            if (_ringTemplate != null) return;
+            if (_ringTemplate != null)
+                return;
 
             _ringTemplate = new GameObject("ProximityRing_Template");
             _ringTemplate.SetActive(false);
@@ -160,8 +201,10 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static GameObject? CreateProximityRing(GameObject parent, string objName = "")
         {
-            if (!_prefShowRings.Value) return null;
-            if (_ringTemplate == null) CreateTemplate();
+            if (!_prefShowRings.Value)
+                return null;
+            if (_ringTemplate == null)
+                CreateTemplate();
 
             try
             {
@@ -176,14 +219,19 @@ namespace Fallen_LE_Mods.Auto_Enabler
                 ringGo.SetActive(true);
                 return ringGo;
             }
-            catch { return null; }
+            catch
+            {
+                return null;
+            }
         }
 
         private static void UpdateRingPoints(GameObject ring, string objName = "")
         {
-            if (ring == null) return;
+            if (ring == null)
+                return;
             var lr = ring.GetComponent<LineRenderer>();
-            if (lr == null) return;
+            if (lr == null)
+                return;
 
             float radiusToDraw = _currentRadius;
 
@@ -192,7 +240,6 @@ namespace Fallen_LE_Mods.Auto_Enabler
             {
                 radiusToDraw = Mathf.Min(_currentRadius, 5.0f);
             }
-
 
             ring.transform.localScale = Vector3.one;
             lr.widthMultiplier = LINE_WIDTH;
@@ -210,11 +257,16 @@ namespace Fallen_LE_Mods.Auto_Enabler
         {
             Vector3 rayStart = pivot + (Vector3.up * 3.0f);
 
-            ring.transform.position = Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 6.0f, FloorMask)
+            ring.transform.position = Physics.Raycast(
+                rayStart,
+                Vector3.down,
+                out RaycastHit hit,
+                6.0f,
+                FloorMask
+            )
                 ? hit.point + (Vector3.up * RING_Y_OFFSET)
                 : pivot + (Vector3.up * RING_Y_OFFSET);
         }
-
 
         //Objects Birth
         [HarmonyPatch(typeof(InteractableListener), nameof(InteractableListener.Awake))]
@@ -222,11 +274,14 @@ namespace Fallen_LE_Mods.Auto_Enabler
         {
             public static void Postfix(InteractableListener __instance)
             {
-                if (__instance == null) return;
+                if (__instance == null)
+                    return;
                 var listener = __instance.TryCast<WorldObjectClickListener>();
-                if (listener != null) ProcessPotentialTarget(listener);
+                if (listener != null)
+                    ProcessPotentialTarget(listener);
             }
         }
+
         //Pooled objects?
         [HarmonyPatch(typeof(WorldObjectClickListener), nameof(WorldObjectClickListener.OnEnable))]
         public class ListenerOnEnablePatch
@@ -239,13 +294,16 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static void ProcessPotentialTarget(WorldObjectClickListener listener)
         {
-            if (listener == null || listener.Pointer == IntPtr.Zero) return;
+            if (listener == null || listener.Pointer == IntPtr.Zero)
+                return;
 
             long addr = listener.Pointer.ToInt64();
-            if (knownPtrs.Contains(addr)) return;
+            if (knownPtrs.Contains(addr))
+                return;
 
             GameObject go = listener.gameObject;
-            if (go == null) return;
+            if (go == null)
+                return;
 
             if (TryGetTargetType(go, out string type))
             {
@@ -277,27 +335,33 @@ namespace Fallen_LE_Mods.Auto_Enabler
             return false;
         }
 
-        private static void Register(WorldObjectClickListener listener, GameObject go, string type, long addr)
+        private static void Register(
+            WorldObjectClickListener listener,
+            GameObject go,
+            string type,
+            long addr
+        )
         {
             knownPtrs.Add(addr);
 
             GameObject? ring = CreateProximityRing(go, go.name);
 
-            activeObjects.Add(new TrackedObject
-            {
-                PtrAddr = addr,
-                Trans = go.transform,
-                LastPos = go.transform.position,
-                Listener = listener,
-                VisualRing = ring,
-                Name = go.name ?? "Unknown Object",
-                Type = type,
-                NullStrikes = 0
-            });
+            activeObjects.Add(
+                new TrackedObject
+                {
+                    PtrAddr = addr,
+                    Trans = go.transform,
+                    LastPos = go.transform.position,
+                    Listener = listener,
+                    VisualRing = ring,
+                    Name = go.name ?? "Unknown Object",
+                    Type = type,
+                    NullStrikes = 0,
+                }
+            );
 
             LogDebug($"[Proximity Manager] +Tracked [{type}]: {go.name}");
         }
-
 
         private static IEnumerator UpdateLoop()
         {
@@ -327,14 +391,17 @@ namespace Fallen_LE_Mods.Auto_Enabler
                     {
                         var obj = activeObjects[i];
 
-                        if (IsObjectInvalid(ref obj, i)) continue;
+                        if (IsObjectInvalid(ref obj, i))
+                            continue;
                         if (obj.VisualRing != null)
                         {
                             Vector3 currentPos = obj.Trans.position;
 
                             if (Vector3.SqrMagnitude(obj.LastPos - currentPos) > 0.01f)
                             {
-                                LogDebug($"[Proximity Manager] Updated Ring Position for: {obj.Name}");
+                                LogDebug(
+                                    $"[Proximity Manager] Updated Ring Position for: {obj.Name}"
+                                );
                                 obj.VisualRing.transform.position = currentPos;
 
                                 SnapRingToGround(obj.VisualRing, currentPos);
@@ -343,7 +410,8 @@ namespace Fallen_LE_Mods.Auto_Enabler
                                 activeObjects[i] = obj;
                             }
                         }
-                        if (HandleProximity(obj, pPos, limit, i)) continue;
+                        if (HandleProximity(obj, pPos, limit, i))
+                            continue;
                     }
                 }
                 yield return wait;
@@ -352,7 +420,12 @@ namespace Fallen_LE_Mods.Auto_Enabler
 
         private static bool IsObjectInvalid(ref TrackedObject obj, int index)
         {
-            if (obj.Listener == null || obj.Listener.Pointer == IntPtr.Zero || obj.Trans == null || obj.Trans.Pointer == IntPtr.Zero)
+            if (
+                obj.Listener == null
+                || obj.Listener.Pointer == IntPtr.Zero
+                || obj.Trans == null
+                || obj.Trans.Pointer == IntPtr.Zero
+            )
             {
                 obj.NullStrikes++;
                 activeObjects[index] = obj;
@@ -425,7 +498,8 @@ namespace Fallen_LE_Mods.Auto_Enabler
         private static void CleanupObject(int index)
         {
             var obj = activeObjects[index];
-            if (obj.VisualRing != null) UnityEngine.Object.Destroy(obj.VisualRing);
+            if (obj.VisualRing != null)
+                UnityEngine.Object.Destroy(obj.VisualRing);
 
             knownPtrs.Remove(obj.PtrAddr);
             activeObjects.RemoveAt(index);
