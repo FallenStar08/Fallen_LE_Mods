@@ -11,12 +11,14 @@ namespace Fallen_LE_Mods.Dev.Visuals
     public static class VisualFixes
     {
         private static bool _isEnabled = true;
-        [HarmonyPatch(typeof(Minimap), "OnInitializeFoW")]
+
+        [HarmonyPatch(typeof(Minimap), "OnFoWDataReady")]
         public class MinimapPatch
         {
             public static void Postfix(Minimap __instance)
             {
-                if (!_isEnabled) return;
+                if (!_isEnabled)
+                    return;
 
                 __instance.RevealRadius = 5000f;
 
@@ -24,7 +26,8 @@ namespace Fallen_LE_Mods.Dev.Visuals
                 {
                     yield return null;
                     yield return null;
-                    if (__instance != null) __instance.RevealRadius = 40f;
+                    if (__instance != null)
+                        __instance.RevealRadius = 40f;
                 }
 
                 MelonCoroutines.Start(DelayReset());
@@ -36,7 +39,8 @@ namespace Fallen_LE_Mods.Dev.Visuals
         {
             public static void Postfix()
             {
-                if (!_isEnabled) return;
+                if (!_isEnabled)
+                    return;
                 MelonCoroutines.Start(DelayedRainCheck());
             }
         }
@@ -53,13 +57,13 @@ namespace Fallen_LE_Mods.Dev.Visuals
                 if (lighting != null)
                 {
                     var child = lighting.transform.Find("Rain");
-                    if (child != null) rainObj = child.gameObject;
+                    if (child != null)
+                        rainObj = child.gameObject;
                 }
             }
 
             if (rainObj != null)
             {
-
                 rainObj.SetActive(false);
                 Log("[Visuals] Rain taken out back and shot ☔ -> 🌞");
             }
