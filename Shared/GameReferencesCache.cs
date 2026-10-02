@@ -5,7 +5,6 @@ using Il2CppLE.Factions;
 using Il2CppLE.UI;
 using Il2CppSystem.Linq;
 
-
 namespace Fallen_LE_Mods.Shared
 {
     public interface ILazyRef
@@ -13,7 +12,9 @@ namespace Fallen_LE_Mods.Shared
         void Reset();
         void Prewarm();
     }
-    public class LazyRef<T> : ILazyRef where T : class
+
+    public class LazyRef<T> : ILazyRef
+        where T : class
     {
         private T? _value;
         private readonly System.Func<T?> _fetcher;
@@ -48,24 +49,41 @@ namespace Fallen_LE_Mods.Shared
     public class GameReferencesCache
     {
         private static readonly List<ILazyRef> _registry = new();
+
         public static void Register(ILazyRef lazyRef)
         {
             _registry.Add(lazyRef);
         }
 
         public static readonly LazyRef<Actor> Player = new(() => PlayerFinder.getPlayerActor());
-        public static readonly LazyRef<ItemFilterManager> ItemFilterManager = new(() => FallenUtils.GetFilterManager);
-        public static readonly LazyRef<ActorVisuals> PlayerVisuals = new(() => PlayerFinder.getPlayerVisuals());
-        public static readonly LazyRef<ItemContainersManager> ItemContainersManager = new(() => Il2Cpp.ItemContainersManager.Instance);
+        public static readonly LazyRef<ItemFilterManager> ItemFilterManager = new(() =>
+            FallenUtils.GetFilterManager
+        );
+        public static readonly LazyRef<ActorVisuals> PlayerVisuals = new(() =>
+            PlayerFinder.getPlayerVisuals()
+        );
+        public static readonly LazyRef<ItemContainersManager> ItemContainersManager = new(() =>
+            Il2Cpp.ItemContainersManager.Instance
+        );
         public static readonly LazyRef<UIBase> GameUiBase = new(() => UIBase.instance);
-        public static readonly LazyRef<Il2CppLE.Data.CharacterData> PlayerData = new(() => PlayerFinder.getPlayerData());
-        public static readonly LazyRef<CharacterDataTracker> PlayerDataTracker = new(() => PlayerFinder.getPlayerDataTracker());
-        public static readonly LazyRef<ExperienceTracker> ExpTracker = new(() => PlayerFinder.getExperienceTracker());
-        public static readonly LazyRef<GoldTracker> GoldTracker = new(() => PlayerFinder.getLocalGoldTracker());
-        public static readonly LazyRef<AncientBonesTracker> BoneTracker = new(() => PlayerFinder.getAncientBonesTracker());
+        public static readonly LazyRef<Il2CppLE.Data.CharacterData> PlayerData = new(() =>
+            PlayerFinder.getPlayerData()
+        );
+        public static readonly LazyRef<CharacterDataTracker> PlayerDataTracker = new(() =>
+            PlayerFinder.getPlayerDataTracker()
+        );
+        public static readonly LazyRef<ExperienceTracker> ExpTracker = new(() =>
+            PlayerFinder.getExperienceTracker()
+        );
+        public static readonly LazyRef<GoldTracker> GoldTracker = new(() =>
+            PlayerFinder.getLocalGoldTracker()
+        );
+        public static readonly LazyRef<AncientBonesTracker> BoneTracker = new(() =>
+            PlayerFinder.getAncientBonesTracker()
+        );
 
-        public static readonly LazyRef<Il2CppSystem.Collections.Generic.List<ItemContainer>> PlayerStash = new(() =>
-            StashTabbedUIControls.instance?.container?.containers);
+        public static readonly LazyRef<Il2CppSystem.Collections.Generic.List<ItemContainer>> PlayerStash =
+            new(() => Il2Cpp.ItemContainersManager.Instance.stash.CurrentContainer.containers);
 
         public static readonly LazyRef<Faction> CircleOfFortune = new(() =>
         {
@@ -87,9 +105,10 @@ namespace Fallen_LE_Mods.Shared
             var enumValues = Enum.GetValues(typeof(FactionID));
             foreach (FactionID v in enumValues)
             {
-                FallenUtils.Log($"Faction : {v} State : {(p.FactionInfo.IsMemberOf(v) ? "joined" : "not joined")}");
+                FallenUtils.Log(
+                    $"Faction : {v} State : {(p.FactionInfo.IsMemberOf(v) ? "joined" : "not joined")}"
+                );
             }
-
 
             if (factions == null)
             {
@@ -99,7 +118,6 @@ namespace Fallen_LE_Mods.Shared
 
             for (int i = 0; i < factions.Count(); i++)
             {
-
                 var f = factions.ElementAt(i);
                 if (f != null && f.ID == FactionID.CircleOfFortune)
                 {
@@ -111,10 +129,12 @@ namespace Fallen_LE_Mods.Shared
         });
 
         public static readonly LazyRef<CraftingManager> CraftingManager = new(() =>
-            Il2Cpp.ItemContainersManager.Instance?.craftingManager);
+            Il2Cpp.ItemContainersManager.Instance?.craftingManager
+        );
 
         public static readonly LazyRef<MaterialContainers> MaterialContainers = new(() =>
-            Il2Cpp.ItemContainersManager.Instance?.materials);
+            Il2Cpp.ItemContainersManager.Instance?.materials
+        );
 
         [HarmonyPostfix]
         public static void Postfix()
