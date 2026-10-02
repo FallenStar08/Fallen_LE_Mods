@@ -9,53 +9,71 @@ using Rule = Il2CppItemFiltering.Rule;
 
 namespace Fallen_LE_Mods.Shared
 {
-
     //Maybe this should be split, idk..
     public static class FallenUtils
     {
         public static HarmonyLib.Harmony? Harmony;
-        public static void Warning(string msg,
-                [CallerMemberName] string methodName = "",
-                [CallerFilePath] string filePath = "")
+
+        public static void Warning(
+            string msg,
+            [CallerMemberName] string methodName = "",
+            [CallerFilePath] string filePath = ""
+        )
         {
             string className = System.IO.Path.GetFileNameWithoutExtension(filePath);
 
             Melon<MyMod>.Logger.Warning($"[{className}.{methodName}] {msg}");
         }
-        public static void BigError(string msg,
-        [CallerMemberName] string methodName = "",
-        [CallerFilePath] string filePath = "")
+
+        public static void BigError(
+            string msg,
+            [CallerMemberName] string methodName = "",
+            [CallerFilePath] string filePath = ""
+        )
         {
             string className = System.IO.Path.GetFileNameWithoutExtension(filePath);
 
             Melon<MyMod>.Logger.BigError($"[{className}.{methodName}] {msg}");
         }
-        public static void Error(string msg,
-        [CallerMemberName] string methodName = "",
-        [CallerFilePath] string filePath = "")
+
+        public static void Error(
+            string msg,
+            [CallerMemberName] string methodName = "",
+            [CallerFilePath] string filePath = ""
+        )
         {
             string className = System.IO.Path.GetFileNameWithoutExtension(filePath);
 
             Melon<MyMod>.Logger.Error($"[{className}.{methodName}] {msg}");
         }
+
         public static void Log(string msg)
         {
             Melon<MyMod>.Logger.Msg(msg);
         }
 
         [Conditional("RELEASE")]
-        public static void LogDebug(string msg,
-        [CallerMemberName] string methodName = "",
-        [CallerFilePath] string filePath = "")
+        public static void LogDebug(
+            string msg,
+            [CallerMemberName] string methodName = "",
+            [CallerFilePath] string filePath = ""
+        )
         {
             string className = System.IO.Path.GetFileNameWithoutExtension(filePath);
 
             Melon<MyMod>.Logger.Msg($"[{className}.{methodName}] {msg}");
         }
 
-        public static void MakeNotification(string msg)
+        public static void MakeNotification(string msg, string title = "FallenMessage")
         {
-            Il2Cpp.Notifications.ShowGenericNotification(msg, 1, 1, 1);
+            Sprite? dummy = null;
+
+            Notifications.ShowGenericNotification(
+                title,
+                msg,
+                dummy,
+                Il2CppLE.UI.Components.NotificationColor.Default
+            );
         }
 
         public static void IncrementOrInitialize(Dictionary<string, int> dict, string key)
@@ -87,16 +105,24 @@ namespace Fallen_LE_Mods.Shared
 
         public static Rule? MatchFilterRule(ItemDataUnpacked _item, bool GetHighest = true)
         {
-            if (_item == null) return null;
+            if (_item == null)
+                return null;
 
             var filterManager = GameReferencesCache.ItemFilterManager.Value;
-            if (filterManager == null || filterManager.Filter == null || filterManager.Filter.rules == null)
+            if (
+                filterManager == null
+                || filterManager.Filter == null
+                || filterManager.Filter.rules == null
+            )
             {
                 return null;
             }
 
             var rules = filterManager.Filter.rules;
-            int level = (GameReferencesCache.ExpTracker.Value != null) ? GameReferencesCache.ExpTracker.Value.CurrentLevel : 0;
+            int level =
+                (GameReferencesCache.ExpTracker.Value != null)
+                    ? GameReferencesCache.ExpTracker.Value.CurrentLevel
+                    : 0;
 
             if (!GetHighest)
             {
@@ -105,7 +131,8 @@ namespace Fallen_LE_Mods.Shared
                     Rule rule = rules[i];
                     if (rule != null && rule.isEnabled && rule.type.ToString() != "HIDE")
                     {
-                        if (rule.Match(_item, level)) return rule;
+                        if (rule.Match(_item, level))
+                            return rule;
                     }
                 }
             }
@@ -116,7 +143,8 @@ namespace Fallen_LE_Mods.Shared
                     Rule rule = rules[i];
                     if (rule != null && rule.isEnabled && rule.type.ToString() != "HIDE")
                     {
-                        if (rule.Match(_item, level)) return rule;
+                        if (rule.Match(_item, level))
+                            return rule;
                     }
                 }
             }
@@ -124,9 +152,13 @@ namespace Fallen_LE_Mods.Shared
             return null;
         }
 
-        public static ItemDataUnpacked? FindSimilarUniqueItemInStash(ItemDataUnpacked _item, bool preferWW)
+        public static ItemDataUnpacked? FindSimilarUniqueItemInStash(
+            ItemDataUnpacked _item,
+            bool preferWW
+        )
         {
-            if (!_item.isUniqueSetOrLegendary() || GameReferencesCache.PlayerStash.Value == null) return null;
+            if (!_item.isUniqueSetOrLegendary() || GameReferencesCache.PlayerStash.Value == null)
+                return null;
 
             ItemDataUnpacked? bestMatch = null;
             int bestValue = -1;
@@ -136,7 +168,8 @@ namespace Fallen_LE_Mods.Shared
                 foreach (ItemContainerEntry itemEntry in stashtab.content)
                 {
                     var data = itemEntry.data;
-                    if (data == null) continue;
+                    if (data == null)
+                        continue;
 
                     if (data.isUniqueSetOrLegendary() && data.uniqueID == _item.uniqueID)
                     {
@@ -170,32 +203,40 @@ namespace Fallen_LE_Mods.Shared
     {
         public static GameObject? GetChildByName(this GameObject parent, string name)
         {
-            if (parent == null) return null;
+            if (parent == null)
+                return null;
             Transform t = parent.transform.Find(name);
-            if (t != null) return t.gameObject;
+            if (t != null)
+                return t.gameObject;
 
             for (int i = 0; i < parent.transform.childCount; i++)
             {
                 var childTransform = parent.transform.GetChild(i);
-                if (childTransform.name == name) return childTransform.gameObject;
+                if (childTransform.name == name)
+                    return childTransform.gameObject;
                 var found = childTransform.gameObject.GetChildByName(name);
-                if (found != null) return found;
+                if (found != null)
+                    return found;
             }
 
             return null;
         }
-
     }
 
     internal static class Scenes
     {
-        private static readonly string[] SceneMenuNames = { "ClientSplash", "PersistentUI", "Login", "CharacterSelectScene" };
+        private static readonly string[] SceneMenuNames =
+        {
+            "ClientSplash",
+            "PersistentUI",
+            "Login",
+            "CharacterSelectScene",
+        };
 
         public static bool IsGameScene()
         {
             Scene scene = SceneManager.GetActiveScene();
             return scene.IsValid() && System.Array.IndexOf(SceneMenuNames, scene.name) < 0;
         }
-
     }
 }
