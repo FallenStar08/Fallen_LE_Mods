@@ -11,7 +11,7 @@
         public const string DownloadLink = "https://www.nexusmods.com/lastepoch/mods/10?tab=files";
 #elif AUTO_ENABLER
         public const string Name = "FallenStar's Auto Enabler";
-        public const string Version = "1.3.2";
+        public const string Version = "1.3.3";
         public const string MainClass = "MyMod";
         public const string DownloadLink = "https://www.nexusmods.com/lastepoch/mods/25?tab=files";
 #elif IMPROVED_OBSERVATORY
