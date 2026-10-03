@@ -6,7 +6,7 @@
 
 #if IMPROVED_TOOLTIPS
         public const string Name = "FallenStar's Improved Tooltips";
-        public const string Version = "3.2.2";
+        public const string Version = "3.2.3";
         public const string MainClass = "MyMod";
         public const string DownloadLink = "https://www.nexusmods.com/lastepoch/mods/10?tab=files";
 #elif AUTO_ENABLER

@@ -596,19 +596,6 @@
     </Task>
   </UsingTask>
 
-  <!-- Replace the version in AssemblyInfo.cs before every build -->
-  <!--
-	<Target Name="UpdateMelonInfoVersion" BeforeTargets="BeforeBuild">
-		<PropertyGroup>
-			<NewVersion>[assembly: MelonInfo(typeof(MyMod), "FallenStar's Improved Tooltips", "$(Version)", "FallenStar")]</NewVersion>
-		</PropertyGroup>
-
-		<Message Text="Updating MelonInfo version to $(Version)" Importance="High" />
-
-		<RegexReplace InputFile="AssemblyInfo.cs" RegexPattern="\[assembly:\s*MelonInfo\(.*?\)\]" Replacement="$(NewVersion)" />
-
-	</Target>-->
-
   <PropertyGroup Condition="'$(Configuration)' == 'RELEASE'">
     <AssemblyName>Fallen_LE_Mods</AssemblyName>
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
@@ -654,7 +641,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <DownloadDir>F:\Downloads\</DownloadDir>
+      <DownloadDir>G:\Downloads\</DownloadDir>
       <ZipOutputPath>$(DownloadDir)$(AssemblyName)_v$(ExtractedVersion).zip</ZipOutputPath>
     </PropertyGroup>
 
