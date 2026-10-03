@@ -5,17 +5,25 @@ using Il2Cpp;
 using Il2CppLE.Factions;
 using MelonLoader;
 using UnityEngine;
-namespace Fallen_LE_Mods.Dev
 
+namespace Fallen_LE_Mods.Dev
 {
     [HarmonyPatch(typeof(GroundItemManager), "dropItemForPlayer")]
     public class ItemDropHandler : MelonMod
     {
-
-
-        public static bool Prefix(GroundItemManager __instance, Actor player, ItemData itemData, ref Vector3 location, bool playDropSound)
+        public static bool Prefix(
+            GroundItemManager __instance,
+            Actor player,
+            ItemData itemData,
+            ref Vector3 location,
+            bool playDropSound
+        )
         {
-            if (!ItemList.isCraftingItem(itemData.itemType) && !ItemList.isWovenEcho(itemData.itemType) && !Item.isKey(itemData.itemType))
+            if (
+                !ItemList.isCraftingItem(itemData.itemType)
+                && !ItemList.isWovenEcho(itemData.itemType)
+                && !Item.isKey(itemData.itemType)
+            )
                 return true;
 
             Vector3 playerPosition = player.position();
@@ -27,105 +35,149 @@ namespace Fallen_LE_Mods.Dev
             ItemContainersManager.Instance.TryStoreMaterials(player);
             return false;
         }
-
     }
 
-
-
-
-    [HarmonyPatch(typeof(GroundItemManager), "dropGoldForPlayer", new Type[] { typeof(Actor), typeof(int), typeof(Vector3), typeof(bool) })]
+    [HarmonyPatch(
+        typeof(GroundItemManager),
+        "dropGoldForPlayer",
+        new Type[] { typeof(Actor), typeof(int), typeof(Vector3), typeof(bool) }
+    )]
     public class GoldDropHandler : MelonMod
     {
-
-        public static bool Prefix(GroundItemManager __instance, Actor player, int goldValue, ref Vector3 location, ref bool playDropSound)
+        public static bool Prefix(
+            GroundItemManager __instance,
+            Actor player,
+            int goldValue,
+            ref Vector3 location,
+            ref bool playDropSound
+        )
         {
-            if (GameReferencesCache.GoldTracker.Value == null) return true;
+            if (GameReferencesCache.GoldTracker.Value == null)
+                return true;
             GameReferencesCache.GoldTracker.Value.modifyGold(goldValue);
             playDropSound = false;
             return false;
-
         }
     }
+
     [HarmonyPatch(typeof(GroundItemManager), "dropXPTomeForPlayer")]
     public class XPTomeDropHandler : MelonMod
     {
-        public static void Prefix(GroundItemManager __instance, Actor player, int experience, ref Vector3 location, bool playDropSound)
+        public static void Prefix(
+            GroundItemManager __instance,
+            Actor player,
+            int experience,
+            ref Vector3 location,
+            bool playDropSound
+        )
         {
-            if (GameReferencesCache.Player.Value == null) return;
+            if (GameReferencesCache.Player.Value == null)
+                return;
             Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
-
         }
     }
 
     [HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmber")]
     public class DropMemoryAmberHandler : MelonMod
     {
-        public static void Prefix(ref UnityEngine.Vector3 position, uint quantity, PickupableObjectCondition condition)
+        public static void Prefix(
+            ref UnityEngine.Vector3 position,
+            uint quantity,
+            PickupableObjectCondition condition
+        )
         {
-            if (GameReferencesCache.Player.Value == null) return;
+            if (GameReferencesCache.Player.Value == null)
+                return;
             Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
-
         }
     }
 
     [HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmberAfterDelay")]
     public class DropMemoryAmberAfterDelayHandler : MelonMod
     {
-        public static void Prefix(ref UnityEngine.Vector3 position, uint quantity, float delay, PickupableObjectCondition condition)
+        public static void Prefix(
+            ref UnityEngine.Vector3 position,
+            uint quantity,
+            float delay,
+            PickupableObjectCondition condition
+        )
         {
-            if (GameReferencesCache.Player.Value == null) return;
+            if (GameReferencesCache.Player.Value == null)
+                return;
             Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
-
         }
     }
 
     [HarmonyPatch(typeof(SilkenCocoonData), "DropMemoryAmberInPilesForWeaverMembers")]
     public class DropMemoryAmberInPilesForWeaverMembersHandler : MelonMod
     {
-        public static void Prefix(ref UnityEngine.Vector3 position, int piles, int corruption, float quantityModifier)
+        public static void Prefix(
+            ref UnityEngine.Vector3 position,
+            int piles,
+            int corruption,
+            float quantityModifier
+        )
         {
-            if (GameReferencesCache.Player.Value == null) return;
+            if (GameReferencesCache.Player.Value == null)
+                return;
             Vector3 playerPosition = GameReferencesCache.Player.Value.position();
             position = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
-
         }
     }
-
-
 
     [HarmonyPatch(typeof(GroundItemManager), "dropAncientBoneForPlayer")]
     public class DropAncientBoneForPlayerHandler : MelonMod
     {
-        public static bool Prefix(GroundItemManager __instance, Actor player, int amount, ref UnityEngine.Vector3 location, ref bool playDropSound, ref bool randomiseLocation)
+        public static bool Prefix(
+            GroundItemManager __instance,
+            Actor player,
+            int amount,
+            ref UnityEngine.Vector3 location,
+            ref bool playDropSound,
+            ref bool randomiseLocation
+        )
         {
-            if (GameReferencesCache.BoneTracker.Value == null) return true;
+            if (GameReferencesCache.BoneTracker.Value == null)
+                return true;
             GameReferencesCache.BoneTracker.Value.modifyAncientBones(amount);
             playDropSound = false;
             randomiseLocation = false;
             return false;
         }
-
     }
 
     [HarmonyPatch(typeof(GroundItemManager), "dropFavorTomeForPlayer")]
     public class dropFavorTomeForPlayerHandler : MelonMod
     {
-        public static bool Prefix(GroundItemManager __instance, Actor player, int favor, ref Vector3 location, ref bool playDropSound, ref bool randomiseLocation)
+        public static bool Prefix(
+            GroundItemManager __instance,
+            Actor player,
+            int favor,
+            ref Vector3 location,
+            ref bool playDropSound,
+            ref bool randomiseLocation
+        )
         {
-            if (GameReferencesCache.Player.Value == null || GameReferencesCache.CircleOfFortune.Value == null) return true;
-            Vector3 playerPosition = GameReferencesCache.Player.Value.position();
+            var playerActor = GameReferencesCache.Player?.Value;
+            if (playerActor == null || playerActor.factionInfo == null)
+                return true;
+
+            if (
+                !playerActor.factionInfo.TryGetFaction(FactionID.CircleOfFortune, out Faction CoF)
+                || CoF == null
+            )
+                return true;
+
+            Vector3 playerPosition = playerActor.position();
             location = new Vector3(playerPosition.x, playerPosition.y, playerPosition.z);
-            GameReferencesCache.CircleOfFortune.Value.GainFavor(favor);
+            CoF.GainFavor(favor);
             playDropSound = false;
             randomiseLocation = false;
             return false;
         }
-
     }
-
-
 }
 #endif
